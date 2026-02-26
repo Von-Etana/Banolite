@@ -1,0 +1,168 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Base styles */
+body {
+  background-color: #FAFAF8;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Background blob for decorative effects */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: -1;
+}
+
+/* Hide scrollbar utility */
+.hide-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+.animate-in {
+  animation-duration: 0.2s;
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  animation-name: fadeIn;
+}
+
+.zoom-in {
+  animation-name: scaleIn;
+}
+
+.slide-in-from-right-4 {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+/* Component Layer */
+@layer components {
+  .btn-primary {
+    @apply bg-brand-dark text-white px-6 py-3 rounded-xl font-bold shadow-subtle hover:shadow-elevated hover:bg-brand-dark/90 transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-white border border-selar-border text-brand-dark px-6 py-3 rounded-xl font-bold hover:shadow-elevated transition-all duration-200;
+  }
+
+  .btn-accent {
+    @apply bg-brand-purple text-white px-6 py-3 rounded-xl font-bold shadow-subtle hover:bg-brand-purple/90 transition-all duration-200;
+  }
+
+  .input-field {
+    @apply w-full bg-white border border-selar-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-dark/10 focus:border-brand-dark/20 transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-selar-border shadow-subtle;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300;
+  }
+
+  .badge {
+    @apply px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide;
+  }
+
+  .badge-dark {
+    @apply badge bg-brand-dark text-white;
+  }
+
+  .badge-muted {
+    @apply badge bg-brand-light text-brand-muted;
+  }
+
+  .badge-purple {
+    @apply badge bg-brand-purple/10 text-brand-purple;
+  }
+
+  .badge-green {
+    @apply badge bg-emerald-50 text-emerald-600;
+  }
+
+  .badge-orange {
+    @apply badge bg-orange-50 text-orange-600;
+  }
+
+  .section-heading {
+    @apply font-display font-bold text-4xl text-brand-dark tracking-tight;
+  }
+
+  .section-subtext {
+    @apply text-brand-muted text-base;
+  }
+}
