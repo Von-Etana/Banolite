@@ -29,9 +29,9 @@ export async function POST(req: NextRequest) {
     const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
-            user_id: user.id,
+            user_id: user.id || 'guest',
             total,
-            status: 'completed',
+            status: 'pending', // Webhook will change this to completed
             payment_method: paymentMethod || 'paystack',
             payment_ref: paymentRef || null,
             email: email || user.email,
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: orderError?.message || 'Failed to create order' }, { status: 500 });
     }
 
-    // 2. Create order items
+    // 2. Create order items (We must insert them now so the webhook knows what to fulfill)
     const orderItems = items.map((item: any) => ({
         order_id: order.id,
         product_id: item.productId,
@@ -56,78 +56,8 @@ export async function POST(req: NextRequest) {
         console.error('Failed to insert order items:', itemsError);
     }
 
-    // 3. Update product sales counts
-    for (const item of items) {
-        await supabase.rpc('increment_sales_count', {
-            p_id: item.productId,
-            amount: item.quantity || 1,
-        }).then(({ error }) => {
-            if (error) {
-                // Fallback: manual update
-                console.error('RPC increment failed, doing manual update');
-            }
-        });
-    }
-
-    // 4. Update user's purchased product IDs
-    const productIds = items.map((item: any) => item.productId);
-    const { data: profile } = await supabase.from('profiles').select('purchased_product_ids').eq('id', user.id).single();
-    if (profile) {
-        const existing = profile.purchased_product_ids || [];
-        const merged = [...new Set([...existing, ...productIds])];
-        await supabase.from('profiles').update({ purchased_product_ids: merged }).eq('id', user.id);
-    }
-
-    // 5. Create notification for the buyer
-    await supabase.from('notifications').insert({
-        user_id: user.id,
-        type: 'order',
-        message: `Your order #${order.id.slice(0, 8)} has been confirmed!`,
-        link: '/library',
-    });
-
-    // 6. Send email receipt to buyer (async, don't block)
-    const buyerProfile = await supabase.from('profiles').select('name').eq('id', user.id).single();
-    sendOrderReceipt({
-        buyerName: buyerProfile.data?.name || 'Customer',
-        buyerEmail: email || user.email!,
-        orderId: order.id,
-        items: items.map((i: any) => ({
-            title: i.title,
-            price: i.price,
-            quantity: i.quantity || 1,
-        })),
-        total,
-        paymentRef: paymentRef || order.id,
-        additionalInfo,
-    }).catch(console.error);
-
-    // 7. Notify each seller (send sale email + in-app notification)
-    const sellerIds = [...new Set(items.map((i: any) => i.creatorId).filter(Boolean))];
-    for (const sellerId of sellerIds) {
-        const sellerItems = items.filter((i: any) => i.creatorId === sellerId);
-        const sellerTotal = sellerItems.reduce((sum: number, i: any) => sum + i.price * (i.quantity || 1), 0);
-
-        // In-app notification
-        await supabase.from('notifications').insert({
-            user_id: sellerId,
-            type: 'sale',
-            message: `You made a sale! $${sellerTotal.toFixed(2)} from ${sellerItems.length} item(s).`,
-            link: '/dashboard/seller',
-        });
-
-        // Email notification
-        const { data: seller } = await supabase.from('profiles').select('name, email').eq('id', sellerId).single();
-        if (seller) {
-            sendSellerSaleNotification({
-                sellerEmail: seller.email,
-                sellerName: seller.name,
-                productTitle: sellerItems[0]?.title || 'a product',
-                amount: sellerTotal,
-                buyerName: buyerProfile.data?.name || 'A customer',
-            }).catch(console.error);
-        }
-    }
+    // We do NOT fulfill the items here anymore. 
+    // We wait for the Paystack webhook to trigger `charge.success` with this `order.id` as the reference.
 
     return NextResponse.json(order, { status: 201 });
 }

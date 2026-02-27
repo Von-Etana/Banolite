@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 type CheckoutStep = 'review' | 'payment' | 'success';
 
 export const CheckoutModal: React.FC = () => {
-  const { cart, placeOrder, cartTotal, siteContent, user, toggleAuth, isCheckoutOpen, toggleCheckout } = useStore();
+  const { cart, createPendingOrder, clearCart, cartTotal, siteContent, user, toggleAuth, isCheckoutOpen, toggleCheckout } = useStore();
   const { formatPrice } = useCurrency();
   const router = useRouter();
 
@@ -44,17 +44,36 @@ export const CheckoutModal: React.FC = () => {
 
   const handlePaystackSuccess = async (reference: any) => {
     setIsProcessing(true);
-    setOrderRef(reference?.reference || `BNL_${Date.now()}`);
-    try {
-      await placeOrder('paystack', formData.email, {
-        bookingDate: formData.bookingDate,
-        attendeeName: formData.attendeeName
-      });
-      setStep('success');
-    } catch (error) {
-      console.error('Order failed:', error);
-    }
-    setIsProcessing(false);
+
+    let attempts = 0;
+    const maxAttempts = 20; // 60 seconds total polling (20 * 3s)
+
+    const pollInterval = setInterval(async () => {
+      attempts++;
+      try {
+        const res = await fetch(`/api/orders/${orderRef}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'completed') {
+            clearInterval(pollInterval);
+            setIsProcessing(false);
+            clearCart();
+            setStep('success');
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+
+      if (attempts >= maxAttempts) {
+        clearInterval(pollInterval);
+        setIsProcessing(false);
+        alert("Payment is verifying in the background. Check your email or library shortly for access.");
+        clearCart();
+        setStep('success');
+      }
+    }, 3000);
   };
 
   const handlePaystackClose = () => {
@@ -270,16 +289,32 @@ export const CheckoutModal: React.FC = () => {
 
                 {/* Continue */}
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (!formData.email || !formData.name) return;
                     if (cart.some(i => i.type === 'COACHING') && !formData.bookingDate) return;
                     if (cart.some(i => i.type === 'TICKET') && !formData.attendeeName) return;
-                    setStep('payment');
+
+                    setIsProcessing(true);
+                    try {
+                      // 1. Create the pending order FIRST
+                      const order = await createPendingOrder('paystack', formData.email, {
+                        bookingDate: formData.bookingDate,
+                        attendeeName: formData.attendeeName
+                      });
+
+                      // 2. Set the ID as the reference for Paystack
+                      setOrderRef(order.id);
+                      setStep('payment');
+                    } catch (error: any) {
+                      console.error('Failed to init order:', error);
+                      alert(error.message || 'Failed to initialize checkout. Please try again.');
+                    }
+                    setIsProcessing(false);
                   }}
-                  disabled={!formData.email || !formData.name || (cart.some(i => i.type === 'COACHING') && !formData.bookingDate) || (cart.some(i => i.type === 'TICKET') && !formData.attendeeName)}
+                  disabled={isProcessing || !formData.email || !formData.name || (cart.some(i => i.type === 'COACHING') && !formData.bookingDate) || (cart.some(i => i.type === 'TICKET') && !formData.attendeeName)}
                   className="w-full py-3.5 bg-brand-dark text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-black transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Continue to Payment <ArrowRight className="w-4 h-4" />
+                  {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Continue to Payment'} <ArrowRight className="w-4 h-4" />
                 </button>
               </motion.div>
             )}
@@ -331,6 +366,7 @@ export const CheckoutModal: React.FC = () => {
                 <PaystackButton
                   email={formData.email}
                   amount={grandTotal}
+                  reference={orderRef}
                   onSuccess={handlePaystackSuccess}
                   onClose={handlePaystackClose}
                   disabled={isProcessing}

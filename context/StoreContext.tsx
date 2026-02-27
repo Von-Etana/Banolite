@@ -55,7 +55,7 @@ interface StoreContextType {
   logout: () => void;
 
   // Order actions
-  placeOrder: (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string }) => Promise<Order>;
+  createPendingOrder: (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string }) => Promise<Order>;
   getUserOrders: () => Order[];
 
   // Booking & Ticket actions
@@ -260,53 +260,53 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Fetch unified user data from API securely
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-            const res = await fetch('/api/orders', {
-                headers: { Authorization: `Bearer ${session.access_token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                
-                setOrders((data.orders || []).map((o: any) => ({
-                  id: o.id,
-                  userId: o.user_id,
-                  items: (o.order_items || []).map((oi: any) => ({
-                      id: oi.product_id,
-                      productId: oi.product_id,
-                      title: oi.products?.title,
-                      coverUrl: oi.products?.cover_url,
-                      type: oi.products?.type,
-                      quantity: oi.quantity,
-                      price: oi.price,
-                  })),
-                  total: parseFloat(o.total),
-                  date: new Date(o.created_at),
-                  status: o.status,
-                  paymentMethod: o.payment_method,
-                  email: o.email,
-                })));
+          const res = await fetch('/api/orders', {
+            headers: { Authorization: `Bearer ${session.access_token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
 
-                setBookings((data.bookings || []).map((b: any) => ({
-                  id: b.id,
-                  userId: b.user_id,
-                  coachId: b.coach_id,
-                  date: new Date(b.date),
-                  status: b.status,
-                  meetLink: b.meet_link,
-                  amount: parseFloat(b.amount),
-                  coachInfo: b.coach,
-                })));
+            setOrders((data.orders || []).map((o: any) => ({
+              id: o.id,
+              userId: o.user_id,
+              items: (o.order_items || []).map((oi: any) => ({
+                id: oi.product_id,
+                productId: oi.product_id,
+                title: oi.products?.title,
+                coverUrl: oi.products?.cover_url,
+                type: oi.products?.type,
+                quantity: oi.quantity,
+                price: oi.price,
+              })),
+              total: parseFloat(o.total),
+              date: new Date(o.created_at),
+              status: o.status,
+              paymentMethod: o.payment_method,
+              email: o.email,
+            })));
 
-                setTickets((data.tickets || []).map((t: any) => ({
-                  id: t.id,
-                  userId: t.user_id,
-                  eventId: t.event_id,
-                  purchaseDate: new Date(t.created_at),
-                  qrCode: t.qr_code || `QR-${t.id}`,
-                  status: t.status,
-                  amount: parseFloat(t.amount),
-                  eventInfo: t.event,
-                })));
-            }
+            setBookings((data.bookings || []).map((b: any) => ({
+              id: b.id,
+              userId: b.user_id,
+              coachId: b.coach_id,
+              date: new Date(b.date),
+              status: b.status,
+              meetLink: b.meet_link,
+              amount: parseFloat(b.amount),
+              coachInfo: b.coach,
+            })));
+
+            setTickets((data.tickets || []).map((t: any) => ({
+              id: t.id,
+              userId: t.user_id,
+              eventId: t.event_id,
+              purchaseDate: new Date(t.created_at),
+              qrCode: t.qr_code || `QR-${t.id}`,
+              status: t.status,
+              amount: parseFloat(t.amount),
+              eventInfo: t.event,
+            })));
+          }
         }
 
         // Fetch notifications
@@ -558,7 +558,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ===== ORDER ACTIONS (calls API route) =====
-  const placeOrder = useCallback(async (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string }): Promise<Order> => {
+  const createPendingOrder = useCallback(async (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string }): Promise<Order> => {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
@@ -591,31 +591,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       throw new Error(orderData.error || 'Order failed');
     }
 
-    const newOrder: Order = {
+    // This order is initially pending, it will be marked completed after successful payment
+    return {
       id: orderData.id,
       userId: user?.id || 'guest',
       items: [...cart],
       total: cartTotal,
       date: new Date(orderData.created_at),
-      status: 'completed',
+      status: 'pending',
       paymentMethod,
       email,
     };
+  }, [cart, cartTotal, user]);
 
-    setOrders(prev => [newOrder, ...prev]);
-
-    // Update user's local purchased product IDs
-    if (user) {
-      const newIds = cart.map(item => item.id);
-      setUser(prev => prev ? {
-        ...prev,
-        purchasedProductIds: [...new Set([...prev.purchasedProductIds, ...newIds])]
-      } : null);
-    }
-
-    clearCart();
-    return newOrder;
-  }, [cart, cartTotal, user, clearCart]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getUserOrders = useCallback(() => {
     if (!user) return [];
@@ -898,21 +886,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // ===== ADMIN ACTIONS =====
   const getAllUsers = useCallback(async (): Promise<User[]> => {
     if (!user || user.role !== 'admin') return [];
-    
+
     try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return [];
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return [];
 
-        const res = await fetch('/api/admin/users', {
-            headers: { Authorization: `Bearer ${session.access_token}` }
-        });
+      const res = await fetch('/api/admin/users', {
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      });
 
-        if (res.ok) {
-            const data = await res.json();
-            return data as User[];
-        }
+      if (res.ok) {
+        const data = await res.json();
+        return data as User[];
+      }
     } catch (err) {
-        console.error('Failed to fetch admin users:', err);
+      console.error('Failed to fetch admin users:', err);
     }
     return [];
   }, [user]);
@@ -949,7 +937,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       bookings, tickets,
       bookCoach, buyTicket, getUserBookings, getUserTickets,
       addToCart, removeFromCart, updateQuantity, clearCart, toggleCart, toggleAuth, toggleCheckout,
-      login, register, logout, placeOrder, getUserOrders, addReview, getProductReviews,
+      login, register, logout, createPendingOrder, getUserOrders, addReview, getProductReviews,
       addProduct, updateProduct, deleteProduct, getSellerProducts,
       updateUserProfile, markNotificationRead, getUnreadNotifications, getSellerStats,
       loginAsDemo, getAllUsers, updateUserRole, deleteUser, updateSiteContent
