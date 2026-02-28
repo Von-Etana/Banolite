@@ -10,6 +10,7 @@ import {
   generateId,
   STORAGE_KEYS
 } from '../services/storageService';
+import toast from 'react-hot-toast';
 
 interface RegisterData {
   name: string;
@@ -243,8 +244,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           setProducts(data.map(dbToProduct));
         }
         // If no products in DB, keep fallback constants
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching products:', err);
+        toast.error('Failed to load products. Using offline defaults.');
       }
     };
 
@@ -328,8 +330,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             link: n.link,
           })));
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching user data:', err);
+        toast.error('We had trouble syncing your account data. Some features may be limited.');
       }
     };
 
@@ -356,7 +359,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             date: new Date(r.created_at),
           })));
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching reviews:', err);
       }
     };
@@ -411,6 +414,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return [...prev, { ...product, quantity: 1 }];
     });
     setIsCartOpen(true);
+    toast.success('Added to cart!');
   }, []);
 
   const removeFromCart = useCallback((productId: string) => {
@@ -437,6 +441,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
+        toast.error(error.message);
         return { success: false, error: error.message };
       }
 
@@ -452,8 +457,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       setIsAuthOpen(false);
+      toast.success('Welcome back!');
       return { success: true };
     } catch (err: any) {
+      toast.error(err.message || 'Login failed');
       return { success: false, error: err.message || 'Login failed' };
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -472,6 +479,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
 
       if (error) {
+        toast.error(error.message);
         return { success: false, error: error.message };
       }
 
@@ -497,8 +505,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       setIsAuthOpen(false);
+      toast.success('Account created successfully!');
       return { success: true };
     } catch (err: any) {
+      toast.error(err.message || 'Registration failed');
       return { success: false, error: err.message || 'Registration failed' };
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -555,6 +565,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setNotifications([]);
     setBookings([]);
     setTickets([]);
+    toast.success('Logged out successfully');
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ===== ORDER ACTIONS (calls API route) =====
@@ -588,6 +599,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const orderData = await res.json();
 
     if (!res.ok) {
+      toast.error(orderData.error || 'Failed to initialize secure checkout.');
       throw new Error(orderData.error || 'Order failed');
     }
 
@@ -743,7 +755,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (data.socialLinks?.website !== undefined) dbUpdate.social_website = data.socialLinks.website;
 
     if (Object.keys(dbUpdate).length > 0) {
-      await supabase.from('profiles').update(dbUpdate).eq('id', user.id);
+      const { error } = await supabase.from('profiles').update(dbUpdate).eq('id', user.id);
+      if (error) {
+        toast.error('Failed to update profile');
+        console.error(error);
+      } else {
+        toast.success('Profile updated successfully!');
+      }
     }
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 

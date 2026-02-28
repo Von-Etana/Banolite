@@ -9,6 +9,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import { useRouter } from 'next/navigation';
 import { PaystackButton } from './PaystackButton';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 type CheckoutStep = 'review' | 'payment' | 'success';
 
@@ -69,7 +70,7 @@ export const CheckoutModal: React.FC = () => {
       if (attempts >= maxAttempts) {
         clearInterval(pollInterval);
         setIsProcessing(false);
-        alert("Payment is verifying in the background. Check your email or library shortly for access.");
+        toast.success("Payment verifying. Check email shortly.", { duration: 6000 });
         clearCart();
         setStep('success');
       }
@@ -307,7 +308,7 @@ export const CheckoutModal: React.FC = () => {
                       setStep('payment');
                     } catch (error: any) {
                       console.error('Failed to init order:', error);
-                      alert(error.message || 'Failed to initialize checkout. Please try again.');
+                      toast.error(error.message || 'Failed to initialize checkout. Please try again.');
                     }
                     setIsProcessing(false);
                   }}
