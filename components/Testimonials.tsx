@@ -1,119 +1,99 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, ArrowRight, Quote } from 'lucide-react';
-import { TESTIMONIALS } from '../constants';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+
+const testimonials = [
+   {
+      name: 'Justin Welsh',
+      quote: '"I help people take the skills that they have, identify those, and turn them into income," Justin shares. As part of our vibrant creator community, Justin’s story serves as proof and inspiration that taking that big leap of faith, combined with robust resources, can be the prelude to unmatched success.',
+      tags: ['Business', 'Courses'],
+      gradient: 'from-transparent to-[#EBF47E]',
+      image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&q=80&w=600'
+   },
+   {
+      name: 'Jacquelyn',
+      quote: '“It just was organic, the way that I created a course for myself and for my audience. I really leaned into the community, asking them what they wanted to learn, what they struggled with, their top two fitness goals,” Jacquelyn says. “I just put together little challenges to get started online.”',
+      tags: ['Fitness', 'Courses'],
+      gradient: 'from-transparent to-[#FF757A]',
+      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=600'
+   },
+   {
+      name: 'Eno Eka',
+      quote: '“I had a successful six-figure career, traveling and having fun. I always documented what I was doing and the projects I was working on, and I started influencing [my audience] to see business analysis as a career because I shared how much fun it was.”',
+      tags: ['Education', 'Coaching'],
+      gradient: 'from-transparent to-[#BDB2FF]',
+      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600'
+   }
+];
 
 export const Testimonials: React.FC = () => {
-   const [current, setCurrent] = useState(0);
-   const [isPaused, setIsPaused] = useState(false);
-
-   const next = useCallback(() => {
-      setCurrent(prev => (prev + 1) % TESTIMONIALS.length);
-   }, []);
-
-   const prev = useCallback(() => {
-      setCurrent(prev => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
-   }, []);
-
-   // Auto-rotate
-   useEffect(() => {
-      if (isPaused) return;
-      const timer = setInterval(next, 5000);
-      return () => clearInterval(timer);
-   }, [isPaused, next]);
-
-   const testimonial = TESTIMONIALS[current];
-
    return (
-      <section className="py-20 container mx-auto px-6">
-         <div className="flex flex-col lg:flex-row items-center gap-16">
-
-            {/* Left Text */}
-            <motion.div
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ duration: 0.5 }}
-               className="lg:w-1/3"
-            >
-               <h2 className="section-heading mb-4">
-                  What People<br />Say About<br />Our Platform
-               </h2>
-               <p className="section-subtext mb-6 text-sm leading-relaxed">
-                  Trusted by thousands of creators and learners worldwide. Here's what they have to say.
-               </p>
-
-               {/* Dots */}
-               <div className="flex items-center gap-2">
-                  {TESTIMONIALS.map((_, i) => (
-                     <button
-                        key={i}
-                        onClick={() => setCurrent(i)}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${i === current ? 'bg-brand-dark w-6' : 'bg-gray-200'}`}
-                     />
-                  ))}
+      <section className="py-32 bg-cream">
+         <div className="container mx-auto px-6 max-w-7xl">
+            <div className="flex flex-col lg:flex-row justify-between items-start gap-12 mb-20">
+               <div className="lg:w-1/2">
+                  <h2 className="font-display font-bold text-5xl md:text-[54px] tracking-[-1.5px] leading-tight mb-4">
+                     The top choice for creators of all sizes.
+                  </h2>
                </div>
-            </motion.div>
-
-            {/* Right Card */}
-            <div
-               className="lg:w-2/3 w-full relative"
-               onMouseEnter={() => setIsPaused(true)}
-               onMouseLeave={() => setIsPaused(false)}
-            >
-               <AnimatePresence mode="wait">
-                  <motion.div
-                     key={current}
-                     initial={{ opacity: 0, x: 30 }}
-                     animate={{ opacity: 1, x: 0 }}
-                     exit={{ opacity: 0, x: -30 }}
-                     transition={{ duration: 0.35, ease: 'easeInOut' as const }}
-                     className="bg-white rounded-2xl p-8 md:p-10 shadow-elevated border border-selar-border relative"
-                  >
-                     <div className="absolute -top-4 -left-4 w-10 h-10 bg-brand-dark rounded-xl flex items-center justify-center text-white shadow-subtle">
-                        <Quote className="w-4 h-4" />
-                     </div>
-
-                     <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-                        <img
-                           src={testimonial.avatar}
-                           alt={testimonial.name}
-                           className="w-16 h-16 rounded-2xl object-cover border border-selar-border"
-                        />
-                        <div>
-                           <div className="flex gap-0.5 mb-3">
-                              {[1, 2, 3, 4, 5].map(s => (
-                                 <span key={s} className={`text-sm ${s <= testimonial.rating ? 'text-amber-400' : 'text-gray-200'}`}>★</span>
-                              ))}
-                           </div>
-                           <p className="text-brand-dark text-base leading-relaxed mb-6">"{testimonial.content}"</p>
-                           <div>
-                              <h4 className="font-bold text-brand-dark text-sm">{testimonial.name}</h4>
-                              <p className="text-xs text-brand-muted uppercase tracking-wide">{testimonial.role}</p>
-                           </div>
-                        </div>
-                     </div>
-                  </motion.div>
-               </AnimatePresence>
-
-               {/* Controls */}
-               <div className="flex gap-2 mt-6 justify-end">
-                  <button
-                     onClick={prev}
-                     className="w-10 h-10 rounded-xl bg-white border border-selar-border flex items-center justify-center text-brand-muted hover:text-brand-dark hover:shadow-subtle transition-all"
-                  >
-                     <ArrowLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                     onClick={next}
-                     className="w-10 h-10 rounded-xl bg-brand-dark flex items-center justify-center text-white hover:bg-brand-dark/90 transition-all"
-                  >
-                     <ArrowRight className="w-4 h-4" />
-                  </button>
+               <div className="lg:w-1/2 flex flex-col items-start lg:items-end">
+                  <p className="text-lg text-brand-dark leading-relaxed mb-6 font-medium max-w-lg">
+                     Learn the playbooks from successful creators so you can implement their strategies and scale your impact.
+                  </p>
+                  <Link href="/blog" className="btn-secondary text-base border-2">
+                     Read Creator Stories →
+                  </Link>
                </div>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+               {testimonials.map((testimonial, i) => (
+                  <motion.div
+                     key={testimonial.name}
+                     initial={{ opacity: 0, y: 30 }}
+                     whileInView={{ opacity: 1, y: 0 }}
+                     viewport={{ once: true, margin: '-50px' }}
+                     transition={{ duration: 0.5, delay: i * 0.15 }}
+                     className="relative rounded-3xl overflow-hidden h-[624px] group"
+                  >
+                     {/* Background Image */}
+                     <div className="absolute inset-0 z-0">
+                        <img
+                           src={testimonial.image}
+                           alt={testimonial.name}
+                           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                        />
+                     </div>
+
+                     {/* Gradient Overlay matching CSS linear-gradient(0deg, color 15%, transparent 55%) */}
+                     <div className={`absolute inset-0 z-10 bg-gradient-to-t ${testimonial.gradient} opacity-90`} style={{ background: `linear-gradient(0deg, ${testimonial.gradient.split('to-')[1].replace(']', '').replace('[', '')} 15%, rgba(255,255,255,0) 65%)` }} />
+
+                     {/* Content */}
+                     <div className="absolute inset-0 z-20 p-8 flex flex-col justify-end text-brand-dark">
+                        <h3 className="font-display font-bold text-3xl mb-4 italic uppercase tracking-tight drop-shadow-sm">
+                           {testimonial.name}
+                        </h3>
+
+                        <div className="flex gap-2 mb-6">
+                           {testimonial.tags.map(tag => (
+                              <span key={tag} className="px-4 py-1 rounded-full border border-black/20 bg-white/30 backdrop-blur-sm text-sm font-medium">
+                                 {tag}
+                              </span>
+                           ))}
+                        </div>
+
+                        <p className="text-[15px] leading-[130%] tracking-[-0.28px] font-medium mb-8 line-clamp-6">
+                           {testimonial.quote}
+                        </p>
+
+                        <button className="self-start font-bold text-[14px] flex items-center gap-1 hover:underline">
+                           Read More <span className="text-lg leading-none">&rarr;</span>
+                        </button>
+                     </div>
+                  </motion.div>
+               ))}
+            </div>
          </div>
       </section>
    );

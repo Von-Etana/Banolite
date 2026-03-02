@@ -1,94 +1,130 @@
 'use client';
 import React from 'react';
-import { ArrowRight, Video, Zap, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Globe, CreditCard, Smartphone, BarChart3, Users, FileText, Mail, Filter, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
-const cardVariants = {
-   hidden: { opacity: 0, y: 24 },
-   visible: (i: number) => ({
-      opacity: 1, y: 0,
-      transition: { duration: 0.5, delay: i * 0.12, ease: 'easeOut' as const },
-   }),
-};
+const features = [
+   {
+      title: 'WEBSITE',
+      headline: 'Set up a fully integrated, easy to manage, no-code website.',
+      color: 'bg-[#ACEFF8]',
+      icon: Globe
+   },
+   {
+      title: 'PAYMENTS',
+      headline: 'Manage checkout and payments with industry-leading security.',
+      color: 'bg-[#BDB2FF]',
+      icon: CreditCard
+   },
+   {
+      title: 'MOBILE APP',
+      headline: 'A custom branded app that goes where they go.',
+      color: 'bg-[#A1DBE3]',
+      icon: Smartphone
+   },
+   {
+      title: 'ANALYTICS',
+      headline: 'Find the numbers that matter for reports you’ll actually use.',
+      color: 'bg-[#FF98B0]',
+      icon: BarChart3
+   },
+   {
+      title: 'CONTACTS',
+      headline: 'Grow 1:1 relationships with your followers off social media.',
+      color: 'bg-[#EBF47E]',
+      icon: Users
+   },
+   {
+      title: 'PAGES',
+      headline: 'Fast and powerful code-free landing pages.',
+      color: 'bg-[#BDB2FF]',
+      icon: FileText
+   },
+   {
+      title: 'EMAILS',
+      headline: 'Build meaningful emails to target your customers.',
+      color: 'bg-[#A1DBE3]',
+      icon: Mail
+   },
+   {
+      title: 'FUNNELS',
+      headline: 'Convert new customers with proven ready-made funnels.',
+      color: 'bg-[#FF98B0]',
+      icon: Filter
+   }
+];
 
 export const FeaturesGrid: React.FC = () => {
    return (
-      <section className="py-20 container mx-auto px-6">
-         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-
-            {/* Card 1: Large — spans 7 cols */}
-            <motion.div
-               custom={0}
-               initial="hidden"
-               whileInView="visible"
-               viewport={{ once: true, margin: '-50px' }}
-               variants={cardVariants}
-               whileHover={{ y: -4, transition: { duration: 0.2 } }}
-            >
-               <Link href="/products" className="md:col-span-7 bg-[#0D1B2A] rounded-2xl p-8 md:p-10 relative overflow-hidden group h-72 md:h-80 block">
-                  <div className="relative z-10">
-                     <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center mb-5 text-white">
-                        <Zap className="w-5 h-5" />
-                     </div>
-                     <h3 className="font-display font-bold text-2xl md:text-3xl text-white mb-2">Creator Tools</h3>
-                     <p className="text-gray-400 text-sm max-w-xs">Download templates, fonts, and premium digital assets from top creators worldwide.</p>
-                     <div className="mt-6 w-10 h-10 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                        <ArrowRight className="w-4 h-4 text-white" />
-                     </div>
-                  </div>
-                  <img
-                     src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=400"
-                     alt="Stack of tools"
-                     className="absolute bottom-0 right-0 w-48 opacity-60 group-hover:opacity-80 transition-opacity"
-                  />
-               </Link>
-            </motion.div>
-
-            {/* Right Stack — 2 cards in 5 cols */}
-            <div className="md:col-span-5 flex flex-col gap-4">
-               <motion.div
-                  custom={1}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: '-50px' }}
-                  variants={cardVariants}
-                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
-               >
-                  <Link href="/products" className="bg-orange-50 rounded-2xl p-8 relative overflow-hidden group h-36 md:h-[calc(50%-0.5rem)] block border border-selar-border/50">
-                     <div className="relative z-10">
-                        <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center mb-3 shadow-subtle">
-                           <Video className="w-4 h-4 text-orange-600" />
-                        </div>
-                        <h3 className="font-display font-bold text-lg text-brand-dark">Top Courses</h3>
-                        <p className="text-brand-muted text-xs">Master new skills with video masterclasses</p>
-                     </div>
+      <section className="py-32 bg-brand-dark text-white relative z-20">
+         <div className="container mx-auto px-6 max-w-7xl">
+            <div className="flex flex-col lg:flex-row justify-between items-start gap-12 mb-20">
+               <div className="lg:w-1/2">
+                  <h2 className="font-display font-bold text-5xl md:text-[64px] tracking-[-2px] leading-[1.05] mb-6">
+                     Creator<br />takes all.
+                  </h2>
+                  <p className="text-xl text-white/80 leading-relaxed max-w-md">
+                     You do all the work, so you keep all the money — and own all your content. No more changing algorithms, chasing engagement, and unfair revenue shares. With us, you’re in control.
+                  </p>
+               </div>
+               <div className="lg:w-1/2 flex justify-start lg:justify-end mt-4 lg:mt-0">
+                  <Link href="/pricing" className="btn-secondary text-base">
+                     See Pricing Plans →
                   </Link>
-               </motion.div>
+               </div>
+            </div>
 
-               <motion.div
-                  custom={2}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: '-50px' }}
-                  variants={cardVariants}
-                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
-               >
-                  <Link href="/discover" className="bg-indigo-50 rounded-2xl p-8 relative overflow-hidden group h-36 md:h-[calc(50%-0.5rem)] block border border-selar-border/50">
-                     <div className="relative z-10 flex items-start justify-between">
-                        <div>
-                           <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center mb-3 shadow-subtle">
-                              <Users className="w-4 h-4 text-indigo-600" />
-                           </div>
-                           <h3 className="font-display font-bold text-lg text-brand-dark">Live Events</h3>
-                           <p className="text-brand-muted text-xs">Webinars, workshops & summits</p>
-                        </div>
-                        <div className="bg-white/80 px-2 py-1 rounded-lg text-[10px] font-bold text-brand-dark border border-selar-border/50">
-                           ★ 4.9
+            {/* Top 3 value props */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+               {[
+                  { title: 'No revenue sharing. Ever.', desc: 'You make the content, you reap the rewards.', color: 'text-[#ACEFF8]' },
+                  { title: 'Grow your business, not theirs.', desc: 'You own 100% of what you make.', color: 'text-[#FF98B0]' },
+                  { title: 'Designed to scale.', desc: 'Dream big. There are no limits on what you can make and earn.', color: 'text-[#E8FF8C]' }
+               ].map((prop, i) => (
+                  <motion.div
+                     key={i}
+                     initial={{ opacity: 0, y: 20 }}
+                     whileInView={{ opacity: 1, y: 0 }}
+                     viewport={{ once: true, margin: '-50px' }}
+                     transition={{ delay: i * 0.1, duration: 0.5 }}
+                     className="bg-[#282525] p-10 rounded-3xl"
+                  >
+                     <div className={`mb-6 ${prop.color}`}>
+                        <Sparkles className="w-10 h-10" />
+                     </div>
+                     <h3 className="font-bold text-2xl mb-4">{prop.title}</h3>
+                     <p className="text-white/70 text-lg leading-relaxed">{prop.desc}</p>
+                  </motion.div>
+               ))}
+            </div>
+
+            {/* Feature Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+               {features.map((feature, i) => (
+                  <motion.div
+                     key={feature.title}
+                     initial={{ opacity: 0, scale: 0.95 }}
+                     whileInView={{ opacity: 1, scale: 1 }}
+                     viewport={{ once: true, margin: '-50px' }}
+                     transition={{ delay: i * 0.05, duration: 0.4 }}
+                     className="bg-white rounded-3xl p-8 flex flex-col justify-between h-[360px] group hover:shadow-card-hover transition-all cursor-pointer border border-transparent hover:border-brand-primary/20"
+                  >
+                     <div>
+                        <h4 className="font-display font-bold text-3xl tracking-tight text-brand-dark mb-4">{feature.title}</h4>
+                        <p className="text-brand-dark font-medium text-[17px] leading-snug">{feature.headline}</p>
+                     </div>
+
+                     <div className="flex justify-between items-end">
+                        <span className="font-bold text-[15px] text-brand-dark group-hover:text-brand-primary transition-colors flex items-center gap-1">
+                           Learn More <span className="text-xl leading-none w-4 h-4 translate-y-[-1px]">&rarr;</span>
+                        </span>
+                        <div className={`w-14 h-14 rounded-2xl ${feature.color} flex items-center justify-center -mb-2 -mr-2 shadow-sm transform group-hover:scale-110 transition-transform duration-300`}>
+                           <feature.icon className="w-6 h-6 text-brand-dark" />
                         </div>
                      </div>
-                  </Link>
-               </motion.div>
+                  </motion.div>
+               ))}
             </div>
 
          </div>

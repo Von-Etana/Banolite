@@ -79,7 +79,18 @@ export const CartDrawer: React.FC = () => {
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                    <p className="text-sm text-gray-500">{item.creator}</p>
+                    {item.metadata?.bookingDate && (
+                      <p className="text-xs text-brand-purple font-medium mt-0.5">
+                        {new Date(item.metadata.bookingDate).toLocaleString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    )}
+                    <p className="text-sm text-gray-500 mt-0.5">{item.creator}</p>
                   </div>
 
                   <div className="flex justify-between items-end">

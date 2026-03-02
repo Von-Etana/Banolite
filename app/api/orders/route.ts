@@ -36,6 +36,8 @@ export async function POST(req: NextRequest) {
                 payment_method: paymentMethod || 'paystack',
                 payment_ref: paymentRef || null,
                 email: email || user.email,
+                phone: additionalInfo?.phone || null,
+                state: additionalInfo?.state || null,
             })
             .select()
             .single();
@@ -50,6 +52,7 @@ export async function POST(req: NextRequest) {
             product_id: item.productId,
             quantity: item.quantity || 1,
             price: item.price,
+            metadata: item.metadata || {},
         }));
 
         const { error: itemsError } = await supabase.from('order_items').insert(orderItems);

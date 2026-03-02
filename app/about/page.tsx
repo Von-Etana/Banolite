@@ -1,3 +1,21 @@
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'About Us | Banolite',
+    description: 'Learn about Banolite — the premier digital marketplace empowering creators and professionals worldwide.',
+    openGraph: {
+        title: 'About Us | Banolite',
+        description: 'Learn about Banolite — the premier digital marketplace empowering creators and professionals worldwide.',
+        type: 'website',
+        siteName: 'Banolite',
+    },
+    twitter: {
+        card: 'summary',
+        title: 'About Us | Banolite',
+        description: 'Learn about Banolite — the premier digital marketplace empowering creators and professionals worldwide.',
+    },
+};
+
 export default function AboutPage() {
     return (
         <div className="min-h-screen pt-32 pb-20 container mx-auto px-6">

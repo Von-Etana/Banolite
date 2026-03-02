@@ -39,7 +39,7 @@ interface StoreContextType {
   tickets: Ticket[];
 
   // Cart actions
-  addToCart: (product: Product) => void;
+  addToCart: (product: Product, metadata?: Record<string, any>) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, delta: number) => void;
   clearCart: () => void;
@@ -56,7 +56,7 @@ interface StoreContextType {
   logout: () => void;
 
   // Order actions
-  createPendingOrder: (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string }) => Promise<Order>;
+  createPendingOrder: (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string; name?: string; phone?: string; state?: string }) => Promise<Order>;
   getUserOrders: () => Order[];
 
   // Booking & Ticket actions
@@ -402,16 +402,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 
-  // ===== CART ACTIONS (unchanged) =====
-  const addToCart = useCallback((product: Product) => {
+  // ===== CART ACTIONS (unchanged mostly, added metadata) =====
+  const addToCart = useCallback((product: Product, metadata?: Record<string, any>) => {
     setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
+      const existing = prev.find(item => item.id === product.id && JSON.stringify(item.metadata) === JSON.stringify(metadata));
       if (existing) {
         return prev.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id && JSON.stringify(item.metadata) === JSON.stringify(metadata)
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity: 1, metadata }];
     });
     setIsCartOpen(true);
     toast.success('Added to cart!');
@@ -569,7 +571,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ===== ORDER ACTIONS (calls API route) =====
-  const createPendingOrder = useCallback(async (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string }): Promise<Order> => {
+  const createPendingOrder = useCallback(async (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string; name?: string; phone?: string; state?: string }): Promise<Order> => {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
@@ -580,6 +582,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         price: item.price,
         quantity: item.quantity,
         creatorId: item.creatorId,
+        metadata: item.metadata,
       })),
       total: cartTotal,
       paymentMethod,
@@ -613,6 +616,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       status: 'pending',
       paymentMethod,
       email,
+      phone: additionalInfo?.phone,
+      state: additionalInfo?.state,
     };
   }, [cart, cartTotal, user]);
 
@@ -879,20 +884,35 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       orders.filter(o => o.items.some(item => item.creatorId === user.id)).map(o => o.userId)
     );
 
-    const monthlyRevenue: Record<string, number> = {};
+    // Generate an array of the last 30 days, initialized to 0
+    const last30Days: Record<string, number> = {};
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dayStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      last30Days[dayStr] = 0;
+    }
+
+    // Map sales to the corresponding day
     sellerOrderItems.forEach(({ item, date }) => {
       const orderDate = new Date(date);
-      const monthName = orderDate.toLocaleString('default', { month: 'short' });
-      monthlyRevenue[monthName] = (monthlyRevenue[monthName] || 0) + (item.price * item.quantity);
+      const dayStr = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (last30Days[dayStr] !== undefined) {
+        last30Days[dayStr] += (item.price * (item.quantity || 1));
+      }
     });
-    const revenueByMonth = Object.entries(monthlyRevenue).map(([month, revenue]) => ({ month, revenue }));
+
+    // Map object back to Recharts expected format [ { month: 'Feb 10', revenue: 1200 }, ... ]
+    const revenueByMonth = Object.entries(last30Days).map(([month, revenue]) => ({ month, revenue }));
 
     const productStats: Record<string, { sales: number; revenue: number }> = {};
     sellerOrderItems.forEach(({ item }) => {
       if (!productStats[item.title]) productStats[item.title] = { sales: 0, revenue: 0 };
-      productStats[item.title].sales += item.quantity;
-      productStats[item.title].revenue += item.price * item.quantity;
+      productStats[item.title].sales += (item.quantity || 1);
+      productStats[item.title].revenue += item.price * (item.quantity || 1);
     });
+
+    // Convert object to array and sort by revenue
     const topProducts = Object.entries(productStats)
       .map(([title, stats]) => ({ title, sales: stats.sales, revenue: stats.revenue }))
       .sort((a, b) => b.revenue - a.revenue)

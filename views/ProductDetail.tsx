@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -67,8 +68,14 @@ export const ProductDetail: React.FC = () => {
 
     const handleSubmitReview = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!comment.trim()) {
+            toast.error('Please write a comment before submitting.');
+            return;
+        }
         addReview(product.id, rating, comment);
         setComment('');
+        setRating(5);
+        toast.success('Review submitted! Thanks for your feedback.');
     };
 
     const handleAddToCart = () => {
@@ -210,10 +217,10 @@ export const ProductDetail: React.FC = () => {
                         {/* Price & CTA */}
                         <div className="flex items-center gap-4">
                             <div>
-                                <span className="text-3xl font-bold text-brand-dark">${product.price.toFixed(2)}</span>
+                                <span className="text-3xl font-bold text-brand-dark">₦{product.price.toFixed(2)}</span>
                                 {product.discountOffer && product.discountOffer > 0 && (
                                     <span className="text-sm text-brand-muted line-through ml-2">
-                                        ${(product.price / (1 - product.discountOffer / 100)).toFixed(2)}
+                                        ₦{(product.price / (1 - product.discountOffer / 100)).toFixed(2)}
                                     </span>
                                 )}
                             </div>
@@ -324,27 +331,36 @@ export const ProductDetail: React.FC = () => {
                                         <p className="text-brand-muted text-sm">No reviews yet. Be the first to review!</p>
                                     </div>
                                 ) : (
-                                    productReviews.map(review => (
-                                        <div key={review.id} className="bg-white border border-selar-border rounded-2xl p-5">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 bg-brand-light rounded-full flex items-center justify-center text-brand-purple font-bold text-sm">
-                                                        {review.userName.charAt(0)}
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-semibold text-brand-dark text-sm">{review.userName}</h4>
-                                                        <div className="flex gap-0.5">
-                                                            {[1, 2, 3, 4, 5].map(s => (
-                                                                <Star key={s} className={`w-3 h-3 ${s <= review.rating ? 'text-amber-400 fill-current' : 'text-gray-200 fill-current'}`} />
-                                                            ))}
+                                    <AnimatePresence>
+                                        {productReviews.map(review => (
+                                            <motion.div
+                                                key={review.id}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.3 }}
+                                                className="bg-white border border-selar-border rounded-2xl p-5"
+                                            >
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-9 h-9 bg-brand-light rounded-full flex items-center justify-center text-brand-purple font-bold text-sm">
+                                                            {review.userName.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-semibold text-brand-dark text-sm">{review.userName}</h4>
+                                                            <div className="flex gap-0.5">
+                                                                {[1, 2, 3, 4, 5].map(s => (
+                                                                    <Star key={s} className={`w-3 h-3 ${s <= review.rating ? 'text-amber-400 fill-current' : 'text-gray-200 fill-current'}`} />
+                                                                ))}
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    <span className="text-[10px] text-brand-muted">{new Date(review.date).toLocaleDateString()}</span>
                                                 </div>
-                                                <span className="text-[10px] text-brand-muted">{new Date(review.date).toLocaleDateString()}</span>
-                                            </div>
-                                            <p className="text-brand-muted text-sm leading-relaxed">{review.comment}</p>
-                                        </div>
-                                    ))
+                                                <p className="text-brand-muted text-sm leading-relaxed">{review.comment}</p>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
                                 )}
                             </div>
                         </div>
@@ -378,7 +394,7 @@ export const ProductDetail: React.FC = () => {
                                     <div className="p-4">
                                         <h4 className="font-bold text-brand-dark text-sm mb-1 line-clamp-2 group-hover:text-brand-purple transition-colors">{p.title}</h4>
                                         <p className="text-xs text-brand-muted mb-2">{p.type}</p>
-                                        <span className="font-bold text-brand-dark text-sm">${p.price.toFixed(2)}</span>
+                                        <span className="font-bold text-brand-dark text-sm">₦{p.price.toFixed(2)}</span>
                                     </div>
                                 </div>
                             ))}
@@ -403,7 +419,7 @@ export const ProductDetail: React.FC = () => {
                                     </div>
                                     <div>
                                         <p className="font-semibold text-brand-dark text-sm line-clamp-1">{product.title}</p>
-                                        <p className="text-sm font-bold text-brand-dark">${product.price.toFixed(2)}</p>
+                                        <p className="text-sm font-bold text-brand-dark">₦{product.price.toFixed(2)}</p>
                                     </div>
                                 </div>
 
@@ -416,7 +432,7 @@ export const ProductDetail: React.FC = () => {
                                             </div>
                                             <div>
                                                 <p className="font-semibold text-brand-dark text-sm line-clamp-1 hover:text-brand-purple transition-colors">{p.title}</p>
-                                                <p className="text-sm font-bold text-brand-dark">${p.price.toFixed(2)}</p>
+                                                <p className="text-sm font-bold text-brand-dark">₦{p.price.toFixed(2)}</p>
                                             </div>
                                         </div>
                                     </React.Fragment>
@@ -426,7 +442,7 @@ export const ProductDetail: React.FC = () => {
                             <div className="flex items-center justify-between pt-4 border-t border-selar-border">
                                 <div>
                                     <p className="text-xs text-brand-muted uppercase font-bold tracking-wider">Bundle Price</p>
-                                    <p className="text-2xl font-bold text-brand-dark">${bundleTotal.toFixed(2)}</p>
+                                    <p className="text-2xl font-bold text-brand-dark">₦{bundleTotal.toFixed(2)}</p>
                                 </div>
                                 <button
                                     onClick={() => {

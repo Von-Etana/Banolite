@@ -1,95 +1,77 @@
 'use client';
 import React from 'react';
-import { useStore } from '../context/StoreContext';
 import { motion } from 'framer-motion';
-import { Package, Globe, Star, Zap, ShieldCheck, HeartHandshake } from 'lucide-react';
+import { BookOpen, LifeBuoy, HeartHandshake } from 'lucide-react';
+import Link from 'next/link';
 
-const bentoStats = [
-   { label: 'Active Creators', value: '5,000+', icon: HeartHandshake, color: 'bg-brand-orange/10 text-brand-orange' },
-   { label: 'Global Reach', value: '120+ Countries', icon: Globe, color: 'bg-brand-purple/10 text-brand-purple' },
-   { label: 'Digital Assets', value: '50,000+', icon: Package, color: 'bg-blue-50 text-blue-600' },
-   { label: 'Secure Payouts', value: '$2M+', icon: ShieldCheck, color: 'bg-emerald-50 text-emerald-600' },
+const resources = [
+   {
+      title: 'Learning Hub',
+      description: 'Free live training workshops, webinars, downloadable guides, and more.',
+      icon: BookOpen,
+      image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800'
+   },
+   {
+      title: '24/7 Support',
+      description: 'Our team is available 24/7 to provide answers and solve problems.',
+      icon: LifeBuoy,
+      image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80&w=800'
+   },
+   {
+      title: 'A Vibrant Community',
+      description: 'Get support and advice from expert creators who know the platform.',
+      icon: HeartHandshake,
+      image: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&q=80&w=800'
+   }
 ];
 
 export const AboutSection: React.FC = () => {
-   const { siteContent } = useStore();
-
    return (
-      <section id="about" className="py-24 container mx-auto px-6 max-w-7xl">
-         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-80px' }}
-            transition={{ duration: 0.5 }}
-            className="mb-16 max-w-3xl"
-         >
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-light border border-selar-border rounded-lg text-xs font-semibold text-brand-dark uppercase tracking-wider mb-6">
-               About Banolite
-            </span>
-            <h2 className="section-heading mb-6">{siteContent.aboutTitle || "Empowering the Next Generation of Digital Creators"}</h2>
-            <p className="text-brand-muted text-lg md:text-xl leading-relaxed whitespace-pre-wrap">
-               {siteContent.aboutContent || "Banolite is the premier platform for educators, artists, and experts to monetize their knowledge. We provide the tools you need to sell digital products, courses, event tickets, and 1-on-1 coaching globally—without the technical headache."}
-            </p>
-         </motion.div>
-
-         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Image Card */}
-            <motion.div
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true, margin: '-80px' }}
-               transition={{ duration: 0.5, delay: 0.1 }}
-               className="bg-brand-light rounded-[2rem] p-6 md:p-10 relative overflow-hidden border border-selar-border"
-            >
-               <div className="flex flex-col h-full justify-between gap-8">
-                  <div>
-                     <h3 className="font-display font-bold text-3xl text-brand-dark mb-4">Built for Growth</h3>
-                     <p className="text-brand-muted mb-8">
-                        Whether you're selling your first eBook or managing a full-scale coaching business,
-                        our infrastructure scales with you. Instant payouts, secure file delivery, and global reach built right in.
-                     </p>
-                     <div className="space-y-4">
-                        <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-selar-border shadow-sm">
-                           <div className="w-12 h-12 bg-brand-purple/10 rounded-xl flex items-center justify-center">
-                              <Zap className="w-6 h-6 text-brand-purple" />
-                           </div>
-                           <div>
-                              <span className="font-bold text-brand-dark block">Zero Config Setup</span>
-                              <span className="text-sm text-brand-muted">Start selling in under 5 minutes</span>
-                           </div>
-                        </div>
-                        <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-selar-border shadow-sm">
-                           <div className="w-12 h-12 bg-brand-orange/10 rounded-xl flex items-center justify-center">
-                              <Globe className="w-6 h-6 text-brand-orange" />
-                           </div>
-                           <div>
-                              <span className="font-bold text-brand-dark block">Worldwide Audience</span>
-                              <span className="text-sm text-brand-muted">Accept payments from anywhere</span>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
+      <section id="about" className="py-32 bg-cream">
+         <div className="container mx-auto px-6 max-w-7xl">
+            <div className="flex flex-col lg:flex-row justify-between items-start gap-12 mb-20">
+               <div className="lg:w-1/2">
+                  <h2 className="section-heading mb-6">
+                     Learn, grow, and<br />build together.
+                  </h2>
                </div>
-            </motion.div>
+               <div className="lg:w-1/2 flex flex-col items-start lg:items-end">
+                  <p className="text-xl text-brand-dark leading-relaxed mb-6 font-medium">
+                     We're much more than software; we're a powerful network of creators and experts ready to share their expertise to save you time and money. We make sure you're never on your own.
+                  </p>
+                  <Link href="/library" className="btn-secondary text-base">
+                     View All Resources →
+                  </Link>
+               </div>
+            </div>
 
-            {/* Bento Stats Grid */}
-            <div className="grid grid-cols-2 gap-4">
-               {bentoStats.map((stat, i) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+               {resources.map((resource, i) => (
                   <motion.div
-                     key={stat.label}
+                     key={resource.title}
                      initial={{ opacity: 0, y: 20 }}
                      whileInView={{ opacity: 1, y: 0 }}
                      viewport={{ once: true, margin: '-50px' }}
-                     transition={{ duration: 0.4, delay: 0.2 + i * 0.08 }}
-                     whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                     className="bg-white rounded-[2rem] p-8 border border-selar-border flex flex-col justify-between cursor-default hover:shadow-lg transition-all"
+                     transition={{ duration: 0.5, delay: i * 0.1 }}
+                     className="bg-[#FAF9F7] rounded-[24px] overflow-hidden flex flex-col border border-selar-border group hover:shadow-card-hover transition-all cursor-pointer"
                   >
-                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${stat.color}`}>
-                        <stat.icon className="w-7 h-7" />
+                     <div className="h-64 relative overflow-hidden">
+                        <img
+                           src={resource.image}
+                           alt={resource.title}
+                           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                        />
                      </div>
-                     <div>
-                        <p className="text-3xl font-display font-bold text-brand-dark mb-1">{stat.value}</p>
-                        <p className="text-sm font-medium text-brand-muted">{stat.label}</p>
+                     <div className="p-8 flex-grow flex flex-col justify-between">
+                        <div>
+                           <h3 className="font-bold text-[22px] text-brand-dark mb-3 leading-tight">{resource.title}</h3>
+                           <p className="text-[15px] text-brand-muted leading-relaxed line-clamp-3">
+                              {resource.description}
+                           </p>
+                        </div>
+                        <span className="font-semibold text-[15px] text-brand-dark mt-8 inline-flex items-center gap-1 group-hover:text-brand-primary transition-colors">
+                           Learn More <span className="text-xl leading-none translate-y-[-1px]">&rarr;</span>
+                        </span>
                      </div>
                   </motion.div>
                ))}

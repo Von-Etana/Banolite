@@ -32,6 +32,7 @@ export interface Product {
 
 export interface CartItem extends Product {
   quantity: number;
+  metadata?: Record<string, any>;
 }
 
 export type UserRole = 'buyer' | 'seller' | 'admin';
@@ -84,6 +85,8 @@ export interface Order {
   status: OrderStatus;
   paymentMethod: string;
   email: string;
+  phone?: string;
+  state?: string;
 }
 
 export type NotificationType = 'sale' | 'review' | 'system' | 'payout' | 'order';

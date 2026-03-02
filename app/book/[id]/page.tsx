@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = `${product.title} by ${product.creator} | Banolite`;
     const description = product.description
         ? product.description.slice(0, 160)
-        : `Get "${product.title}" — a premium ${product.type?.toLowerCase() || 'digital product'} by ${product.creator}. Only $${product.price}.`;
+        : `Get "${product.title}" — a premium ${product.type?.toLowerCase() || 'digital product'} by ${product.creator}. Only ₦${product.price}.`;
 
     return {
         title,

@@ -48,12 +48,14 @@ export async function POST(req: NextRequest) {
         }
 
         const items = order.order_items.map((item: any) => ({
+            id: item.id, // Keep the order_item.id
             productId: item.product_id,
             title: item.products.title,
             price: item.price,
             quantity: item.quantity,
             creatorId: item.products.creator_id,
             type: item.products.type,
+            metadata: item.metadata,
         }));
 
         const total = order.total;
@@ -65,7 +67,9 @@ export async function POST(req: NextRequest) {
         // A. Mark order as completed
         await supabase.from('orders').update({ status: 'completed' }).eq('id', orderId);
 
-        // B. Update product sales counts
+        let emailAdditionalInfo: any = {};
+
+        // B. Update product sales counts and generate Bookings/Tickets
         for (const item of items) {
             await supabase.rpc('increment_sales_count', {
                 p_id: item.productId,
@@ -73,6 +77,45 @@ export async function POST(req: NextRequest) {
             }).then(({ error }) => {
                 if (error) console.error('RPC increment failed, doing manual update');
             });
+
+            // If it's a Coaching session, generate a booking
+            if (item.type === 'COACHING' && item.metadata?.bookingDate && item.metadata?.coachId) {
+                // Generate X bookings based on quantity
+                for (let i = 0; i < (item.quantity || 1); i++) {
+                    const meetLink = `https://meet.google.com/${crypto.randomBytes(4).toString('hex')}`;
+                    await supabase.from('bookings').insert({
+                        user_id: buyerId !== 'guest' ? buyerId : null,
+                        coach_id: item.metadata.coachId,
+                        order_item_id: item.id,
+                        date: item.metadata.bookingDate,
+                        status: 'upcoming',
+                        meet_link: meetLink,
+                        amount: item.price
+                    });
+
+                    // Capture for email receipt
+                    emailAdditionalInfo.bookingDate = item.metadata.bookingDate;
+                    emailAdditionalInfo.meetLink = meetLink;
+                }
+            }
+
+            // If it's a Ticket, generate event tickets
+            if (item.type === 'TICKET') {
+                for (let i = 0; i < (item.quantity || 1); i++) {
+                    const qrCode = `QR-${orderId.slice(0, 8)}-${item.id.slice(0, 4)}-${i}`;
+                    await supabase.from('tickets').insert({
+                        user_id: buyerId !== 'guest' ? buyerId : null,
+                        event_id: item.productId,
+                        order_item_id: item.id,
+                        qr_code: qrCode,
+                        status: 'valid',
+                        amount: item.price
+                    });
+
+                    // Capture for email receipt
+                    emailAdditionalInfo.qrCode = qrCode;
+                }
+            }
         }
 
         // C. Update buyer's profile
@@ -98,10 +141,7 @@ export async function POST(req: NextRequest) {
         const buyerProfile = buyerId !== 'guest' ? await supabase.from('profiles').select('name').eq('id', buyerId).single() : { data: null };
         const buyerName = buyerProfile.data?.name || 'Customer';
 
-        // We'll extract additional info from the order metadata if needed, but for MVP let's keep it simple or fetch from a JSON field.
-        // For now, we'll assume `additional_info` exists on the order table or we skip it in the webhook.
-        // To keep it simple, we won't inject additionalInfo via webhook for now unless we add a jsonb column.
-
+        // We mapped newly generated links and codes into `emailAdditionalInfo` during fulfillment.
         sendOrderReceipt({
             buyerName,
             buyerEmail,
@@ -109,6 +149,7 @@ export async function POST(req: NextRequest) {
             items,
             total,
             paymentRef: event.data.reference,
+            additionalInfo: emailAdditionalInfo,
         }).catch(console.error);
 
         // E. Notify and update sellers
@@ -130,7 +171,7 @@ export async function POST(req: NextRequest) {
                 await supabase.from('notifications').insert({
                     user_id: sellerId,
                     type: 'sale',
-                    message: `You made a sale! $${sellerTotal.toFixed(2)} from ${sellerItems.length} item(s).`,
+                    message: `You made a sale! ₦${sellerTotal.toFixed(2)} from ${sellerItems.length} item(s).`,
                     link: '/dashboard/seller',
                 });
 

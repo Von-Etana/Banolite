@@ -14,7 +14,7 @@ export const generateBookResponse = async (userQuery: string): Promise<string> =
   }
 
   const inventoryContext = PRODUCTS.map(p =>
-    `- [${p.type}] "${p.title}" by ${p.creator} ($${p.price}): ${p.description}`
+    `- [${p.type}] "${p.title}" by ${p.creator} (₦${p.price}): ${p.description}`
   ).join('\n');
 
   const systemInstruction = `

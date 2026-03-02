@@ -25,6 +25,7 @@ export const CreatorDashboard: React.FC = () => {
       deleteProduct,
       getSellerStats,
       orders,
+      reviews,
       siteContent,
       updateUserProfile
    } = useStore();
@@ -47,6 +48,8 @@ export const CreatorDashboard: React.FC = () => {
       storeBanner: user?.storeBanner || '',
       avatar: user?.avatar || '',
       brandColor: user?.brandColor || '#111827',
+      socialTwitter: user?.socialLinks?.twitter || '',
+      socialWebsite: user?.socialLinks?.website || '',
    });
 
    // Mock Payout History
@@ -56,7 +59,7 @@ export const CreatorDashboard: React.FC = () => {
    ];
 
    // Form States
-   const [productForm, setProductForm] = useState<Partial<Product>>({
+   const [productForm, setProductForm] = useState<Partial<Omit<Product, 'eventDate'>> & { eventDate?: string; eventLocation?: string }>({
       title: '',
       description: '',
       price: 0,
@@ -65,7 +68,9 @@ export const CreatorDashboard: React.FC = () => {
       discountOffer: 0,
       coverUrl: '',
       color: 'bg-white border border-selar-border shadow-sm',
-      type: 'EBOOK'
+      type: 'EBOOK',
+      eventDate: undefined,
+      eventLocation: ''
    });
 
    // Check for seller role
@@ -97,7 +102,9 @@ export const CreatorDashboard: React.FC = () => {
          discountOffer: 0,
          coverUrl: `https://picsum.photos/seed/${Date.now()}/400/500`,
          color: 'bg-zinc-50',
-         type: 'EBOOK'
+         type: 'EBOOK',
+         eventDate: undefined,
+         eventLocation: ''
       });
       setIsEditing(false);
       setIsPreviewMode(false);
@@ -105,7 +112,10 @@ export const CreatorDashboard: React.FC = () => {
    };
 
    const handleOpenEdit = (product: Product) => {
-      setProductForm(product);
+      setProductForm({
+         ...product as any,
+         eventDate: product.eventDate ? new Date(product.eventDate).toISOString().slice(0, 16) : undefined,
+      });
       setIsEditing(true);
       setIsPreviewMode(false);
       setIsAddModalOpen(true);
@@ -127,8 +137,11 @@ export const CreatorDashboard: React.FC = () => {
             tags: productForm.tags || ['General'],
             category: productForm.category || 'Education',
             discountOffer: Number(productForm.discountOffer) || 0,
-            type: productForm.type || 'EBOOK'
-         });
+            type: productForm.type || 'EBOOK',
+            metadata: (productForm.type === 'TICKET' || productForm.type === 'COACHING')
+               ? { eventDate: productForm.eventDate, eventLocation: productForm.eventLocation }
+               : undefined
+         } as any);
       }
       setIsAddModalOpen(false);
       setIsPreviewMode(false);
@@ -150,6 +163,10 @@ export const CreatorDashboard: React.FC = () => {
          storeName: profileForm.storeName,
          storeDescription: profileForm.storeDescription,
          storeBanner: profileForm.storeBanner,
+         socialLinks: {
+            twitter: profileForm.socialTwitter,
+            website: profileForm.socialWebsite,
+         },
       });
    };
 
@@ -237,7 +254,7 @@ export const CreatorDashboard: React.FC = () => {
                         </div>
                         <div>
                            <p className="text-sm text-gray-500 font-medium">Total Revenue</p>
-                           <h3 className="text-2xl font-bold text-brand-dark">${stats.totalRevenue.toFixed(2)}</h3>
+                           <h3 className="text-2xl font-bold text-brand-dark">₦{stats.totalRevenue.toFixed(2)}</h3>
                         </div>
                      </div>
                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
@@ -267,6 +284,22 @@ export const CreatorDashboard: React.FC = () => {
                            <h3 className="text-2xl font-bold text-brand-dark">{stats.totalCustomers}</h3>
                         </div>
                      </div>
+                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white border border-selar-border shadow-sm rounded-xl flex items-center justify-center text-amber-500">
+                           <Star className="w-6 h-6" />
+                        </div>
+                        <div>
+                           <p className="text-sm text-gray-500 font-medium">Avg Rating</p>
+                           <h3 className="text-2xl font-bold text-brand-dark">
+                              {(() => {
+                                 const sellerReviews = reviews.filter(r => sellerProducts.some(p => p.id === r.productId));
+                                 return sellerReviews.length > 0
+                                    ? (sellerReviews.reduce((s, r) => s + r.rating, 0) / sellerReviews.length).toFixed(1)
+                                    : '—';
+                              })()}
+                           </h3>
+                        </div>
+                     </div>
                   </div>
 
                   {/* Analytics Charts */}
@@ -278,7 +311,7 @@ export const CreatorDashboard: React.FC = () => {
                               <LineChart data={stats.revenueByMonth} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dy={10} />
-                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} tickFormatter={(val) => `$${val}`} />
+                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} tickFormatter={(val) => `₦${val}`} />
                                  <RechartsTooltip cursor={{ stroke: '#F3F4F6', strokeWidth: 2 }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
                                  <Line type="monotone" dataKey="revenue" stroke="#7C3AED" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                               </LineChart>
@@ -339,10 +372,27 @@ export const CreatorDashboard: React.FC = () => {
                      <div className="bg-white rounded-2xl border border-gray-100 p-6">
                         <div className="flex items-center justify-between mb-4">
                            <h3 className="font-bold text-lg text-brand-dark">Recent Activity</h3>
-                           <button onClick={() => setActiveTab('overview')} className="text-xs text-selar-black font-semibold">View all</button>
+                           <button onClick={() => setActiveTab('customers')} className="text-xs text-selar-black font-semibold">View all</button>
                         </div>
                         <div className="space-y-3">
-                           <p className="text-gray-500 text-sm text-center py-4">No recent activity to display.</p>
+                           {sellerOrders.length === 0 ? (
+                              <p className="text-gray-500 text-sm text-center py-4">No recent activity to display.</p>
+                           ) : (
+                              sellerOrders.slice(0, 5).map(order => (
+                                 <div key={order.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                                    <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                       <ShoppingCart className="w-4 h-4" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                       <p className="text-sm font-medium text-brand-dark truncate">
+                                          {order.items.map(i => i.title).join(', ') || 'Order'}
+                                       </p>
+                                       <p className="text-xs text-brand-muted">{new Date(order.date).toLocaleDateString()}</p>
+                                    </div>
+                                    <span className="text-sm font-bold text-brand-dark">₦{order.total.toFixed(2)}</span>
+                                 </div>
+                              ))
+                           )}
                         </div>
                      </div>
                   </div>
@@ -402,7 +452,7 @@ export const CreatorDashboard: React.FC = () => {
                                     <td className="px-6 py-4">
                                        <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-1 rounded uppercase tracking-wider">{p.type}</span>
                                     </td>
-                                    <td className="px-6 py-4 font-medium text-brand-dark">${p.price.toFixed(2)}</td>
+                                    <td className="px-6 py-4 font-medium text-brand-dark">₦{p.price.toFixed(2)}</td>
                                     <td className="px-6 py-4 text-sm text-gray-600">{p.salesCount || 0}</td>
                                     <td className="px-6 py-4 text-right">
                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -468,7 +518,7 @@ export const CreatorDashboard: React.FC = () => {
                                        </div>
                                     </td>
                                     <td className="px-6 py-4 font-bold text-brand-dark">
-                                       ${relevantItems.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0).toFixed(2)}
+                                       ₦{relevantItems.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0).toFixed(2)}
                                     </td>
                                  </tr>
                               )
@@ -500,7 +550,7 @@ export const CreatorDashboard: React.FC = () => {
                                  {siteContent.platformFeePercentage}% Fee deducted
                               </span>
                            </div>
-                           <h3 className="text-4xl font-bold mb-8">${(user.walletBalance || 0).toFixed(2)}</h3>
+                           <h3 className="text-4xl font-bold mb-8">₦{(user.walletBalance || 0).toFixed(2)}</h3>
                            <button className="w-full bg-white text-brand-dark py-4 rounded-xl font-bold hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
                               <ArrowDownCircle className="w-5 h-5" />
                               Withdraw Earnings
@@ -531,7 +581,7 @@ export const CreatorDashboard: React.FC = () => {
                                  {payoutHistory.map(p => (
                                     <tr key={p.id}>
                                        <td className="px-6 py-4 font-mono text-sm text-gray-500">#{p.id.toUpperCase()}</td>
-                                       <td className="px-6 py-4 font-bold text-brand-dark">${p.amount.toFixed(2)}</td>
+                                       <td className="px-6 py-4 font-bold text-brand-dark">₦{p.amount.toFixed(2)}</td>
                                        <td className="px-6 py-4 text-sm text-gray-500">{new Date(p.date).toLocaleDateString()}</td>
                                        <td className="px-6 py-4">
                                           <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${p.status === 'completed' ? 'bg-white border border-selar-border shadow-sm text-selar-black' : 'bg-white border border-selar-border shadow-sm text-selar-black'
@@ -612,6 +662,26 @@ export const CreatorDashboard: React.FC = () => {
                               className="w-12 h-12 rounded-lg cursor-pointer border-0 p-0 overflow-hidden"
                            />
                            <p className="text-sm text-gray-500">Pick a primary color for your storefront buttons and accents.</p>
+                        </div>
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                           <label className="block text-xs font-bold text-brand-muted uppercase mb-2">Twitter Handle</label>
+                           <input
+                              value={profileForm.socialTwitter}
+                              onChange={e => setProfileForm({ ...profileForm, socialTwitter: e.target.value })}
+                              className="input-field"
+                              placeholder="@yourhandle or full URL"
+                           />
+                        </div>
+                        <div>
+                           <label className="block text-xs font-bold text-brand-muted uppercase mb-2">Website</label>
+                           <input
+                              value={profileForm.socialWebsite}
+                              onChange={e => setProfileForm({ ...profileForm, socialWebsite: e.target.value })}
+                              className="input-field"
+                              placeholder="https://yoursite.com"
+                           />
                         </div>
                      </div>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -733,9 +803,9 @@ export const CreatorDashboard: React.FC = () => {
                                        <p className="text-[10px] text-gray-400 mt-1">Leave at 0 if no discount applies.</p>
                                     </div>
                                     <div>
-                                       <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Price (USD)</label>
+                                       <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Price (NGN)</label>
                                        <div className="relative">
-                                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">$</span>
+                                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">₦</span>
                                           <input
                                              required
                                              value={productForm.price}
@@ -757,24 +827,60 @@ export const CreatorDashboard: React.FC = () => {
                                        />
                                     </div>
 
-                                    <div className="col-span-2 grid grid-cols-2 gap-4">
-                                       <FileUpload
-                                          bucket="files"
-                                          accept=".pdf,.zip,.mp4,.epub"
-                                          label="Product Content"
-                                          hint="PDF, ZIP, MP4 or EPUB"
-                                          onUploadComplete={(url) => setProductForm({ ...productForm, fileUrl: url })}
-                                          currentUrl={productForm.fileUrl}
-                                       />
-                                       <FileUpload
-                                          bucket="covers"
-                                          accept="image/*"
-                                          label="Cover Image"
-                                          hint="JPEG, PNG or WebP"
-                                          onUploadComplete={(url) => setProductForm({ ...productForm, coverUrl: url })}
-                                          currentUrl={productForm.coverUrl}
-                                       />
-                                    </div>
+                                    {productForm.type === 'TICKET' || productForm.type === 'COACHING' ? (
+                                       <div className="col-span-2 grid grid-cols-2 gap-4">
+                                          <div>
+                                             <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Event Date & Time</label>
+                                             <input
+                                                type="datetime-local"
+                                                required
+                                                value={productForm.eventDate || ''}
+                                                onChange={e => setProductForm({ ...productForm, eventDate: e.target.value })}
+                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-selar-black/20 transition-all"
+                                             />
+                                          </div>
+                                          <div>
+                                             <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Location / Link</label>
+                                             <input
+                                                type="text"
+                                                required
+                                                placeholder="e.g. Zoom, Lagos, etc."
+                                                value={productForm.eventLocation || ''}
+                                                onChange={e => setProductForm({ ...productForm, eventLocation: e.target.value })}
+                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-selar-black/20 transition-all"
+                                             />
+                                          </div>
+                                          <div className="col-span-2 mt-4">
+                                             <FileUpload
+                                                bucket="covers"
+                                                accept="image/*"
+                                                label="Event Banner / Cover Image"
+                                                hint="JPEG, PNG or WebP"
+                                                onUploadComplete={(url) => setProductForm({ ...productForm, coverUrl: url })}
+                                                currentUrl={productForm.coverUrl}
+                                             />
+                                          </div>
+                                       </div>
+                                    ) : (
+                                       <div className="col-span-2 grid grid-cols-2 gap-4">
+                                          <FileUpload
+                                             bucket="files"
+                                             accept=".pdf,.zip,.mp4,.epub"
+                                             label="Product Content"
+                                             hint="PDF, ZIP, MP4 or EPUB"
+                                             onUploadComplete={(url) => setProductForm({ ...productForm, fileUrl: url })}
+                                             currentUrl={productForm.fileUrl}
+                                          />
+                                          <FileUpload
+                                             bucket="covers"
+                                             accept="image/*"
+                                             label="Cover Image"
+                                             hint="JPEG, PNG or WebP"
+                                             onUploadComplete={(url) => setProductForm({ ...productForm, coverUrl: url })}
+                                             currentUrl={productForm.coverUrl}
+                                          />
+                                       </div>
+                                    )}
                                  </div>
                               </form>
                            </div>
@@ -815,7 +921,7 @@ export const CreatorDashboard: React.FC = () => {
                                        <div className="flex items-center justify-between p-6 bg-selar-black rounded-2xl text-white shadow-xl shadow-brand-dark/20">
                                           <div>
                                              <p className="text-[10px] font-bold text-white/50 uppercase">Instant Access</p>
-                                             <p className="text-3xl font-bold">${(productForm.price || 0).toFixed(2)}</p>
+                                             <p className="text-3xl font-bold">₦{(productForm.price || 0).toFixed(2)}</p>
                                           </div>
                                           <div className="bg-white/10 px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-bold border border-white/10">
                                              <ShoppingCart className="w-4 h-4" />

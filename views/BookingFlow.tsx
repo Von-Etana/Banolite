@@ -11,7 +11,7 @@ interface BookingFlowProps {
 }
 
 export const BookingFlow: React.FC<BookingFlowProps> = ({ coach, onClose }) => {
-    const { bookCoach, user, toggleAuth } = useStore();
+    const { addToCart, user, toggleAuth } = useStore();
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -44,12 +44,30 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ coach, onClose }) => {
         finalDate.setHours(hour, parseInt(minutes), 0, 0);
 
         try {
-            await bookCoach(coach.id, finalDate, coach.hourlyRate);
+            // Construct a pseudo-product for the cart
+            const coachingProduct: any = {
+                id: `coach-${coach.id}`,
+                title: `1:1 Session with ${coach.name}`,
+                creator: coach.name,
+                creatorId: coach.id,
+                price: coach.hourlyRate,
+                description: `A 60-minute 1:1 coaching session with ${coach.name}.`,
+                coverUrl: coach.avatar,
+                color: 'bg-brand-purple/10',
+                type: 'COACHING',
+            };
+
+            addToCart(coachingProduct, {
+                bookingDate: finalDate.toISOString(),
+                coachId: coach.id,
+                duration: '60 mins'
+            });
+
             setIsSuccess(true);
             setTimeout(() => {
                 onClose();
                 setIsSuccess(false);
-            }, 2000);
+            }, 1000);
         } catch (error) {
             console.error(error);
         } finally {
@@ -98,7 +116,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ coach, onClose }) => {
 
                                     <div className="pt-4 border-t border-selar-border text-sm flex justify-between">
                                         <span className="text-brand-muted">Session Rate</span>
-                                        <span className="font-semibold text-brand-dark">${coach.hourlyRate}/hr</span>
+                                        <span className="font-semibold text-brand-dark">₦{coach.hourlyRate}/hr</span>
                                     </div>
                                 </div>
 
@@ -159,7 +177,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ coach, onClose }) => {
                         <div className="p-6 border-t border-selar-border bg-brand-light flex justify-between items-center">
                             <div className="text-sm">
                                 <p className="text-brand-muted">Total Due</p>
-                                <p className="text-xl font-bold text-brand-dark">${coach.hourlyRate.toFixed(2)}</p>
+                                <p className="text-xl font-bold text-brand-dark">₦{coach.hourlyRate.toFixed(2)}</p>
                             </div>
                             <button
                                 onClick={handleBook}

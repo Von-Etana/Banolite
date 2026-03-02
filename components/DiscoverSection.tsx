@@ -1,56 +1,51 @@
 'use client';
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Book, MonitorPlay, Ticket, Briefcase } from 'lucide-react';
-import Link from 'next/link';
+import { GraduationCap, Users, Mic, Briefcase, FileText, LayoutGrid, Heart, Sparkles } from 'lucide-react';
 
-const categories = [
-    { id: 'ebooks', title: 'eBooks & Guides', icon: Book, desc: 'Comprehensive written manuals', span: 'md:col-span-2' },
-    { id: 'courses', title: 'Video Courses', icon: MonitorPlay, desc: 'High definition masterclasses', span: '' },
-    { id: 'tickets', title: 'Event Tickets', icon: Ticket, desc: 'Webinars and live sessions', span: '' },
-    { id: 'services', title: 'Digital Services', icon: Briefcase, desc: 'Consulting and freelance work', span: 'md:col-span-2' },
+const products = [
+    { id: 'courses', title: 'Online Courses', icon: GraduationCap, desc: 'Deliver high quality learning experiences.' },
+    { id: 'coaching', title: 'Coaching', icon: Briefcase, desc: 'Setup 1:1 or group coaching programs.' },
+    { id: 'podcasts', title: 'Podcasts', icon: Mic, desc: 'Host, publish, and monetize audio.' },
+    { id: 'memberships', title: 'Memberships', icon: Users, desc: 'Build highly engaged, recurring revenue.' },
+    { id: 'communities', title: 'Communities', icon: Heart, desc: 'Connect your audience with each other.' },
+    { id: 'downloads', title: 'Downloads', icon: FileText, desc: 'Sell ebooks, templates, and digital files.' },
+    { id: 'newsletters', title: 'Newsletters', icon: Sparkles, desc: 'Send paid or free recurring updates.' },
+    { id: 'bundles', title: 'Bundles', icon: LayoutGrid, desc: 'Package any combo of products together.' },
 ];
 
 export const DiscoverProducts: React.FC = () => {
     return (
-        <section id="store" className="py-24 bg-white border-b border-selar-border">
+        <section id="store" className="py-32 bg-[#F9F9F9]">
             <div className="container mx-auto px-6 max-w-7xl">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-                    <div className="max-w-2xl">
-                        <h2 className="section-heading mb-3">Discover Products</h2>
-                        <p className="section-subtext">
-                            Explore thousands of digital assets crafted by top-tier creators.
-                        </p>
-                    </div>
-                    <Link href="/products" className="inline-flex items-center gap-2 text-sm font-semibold text-brand-dark hover:text-brand-purple transition-colors group">
-                        View All Catalog
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                <div className="text-center mb-16">
+                    <h2 className="font-display font-bold text-5xl md:text-6xl tracking-[-1.5px] leading-tight text-brand-dark mb-4">
+                        Everything you need<br />to build your empire.
+                    </h2>
+                    <p className="text-xl text-brand-muted max-w-2xl mx-auto">
+                        Sell all of your products in one place. Diversify your revenue and grow your business with a unified platform.
+                    </p>
                 </div>
 
-                {/* Asymmetric Bento Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    {categories.map((cat, i) => {
-                        const Icon = cat.icon;
+                {/* Clean Uniform Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {products.map((prod, i) => {
+                        const Icon = prod.icon;
                         return (
                             <motion.div
-                                key={cat.id}
+                                key={prod.id}
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: '-50px' }}
-                                transition={{ duration: 0.4, delay: i * 0.08 }}
-                                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                                className={`${cat.span} bg-brand-light border border-selar-border rounded-2xl p-7 flex flex-col justify-between h-44 group cursor-pointer`}
+                                transition={{ duration: 0.4, delay: i * 0.05 }}
+                                className="bg-white rounded-2xl p-8 flex flex-col justify-between h-56 group border border-[#E5E5E5] hover:border-brand-primary/30 hover:shadow-card-hover transition-all cursor-pointer"
                             >
-                                <div className="flex justify-between items-start">
-                                    <div className="w-10 h-10 rounded-xl bg-white border border-selar-border/50 flex items-center justify-center shadow-subtle">
-                                        <Icon className="w-5 h-5 text-brand-dark" />
-                                    </div>
-                                    <ArrowRight className="w-4 h-4 text-brand-muted opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                                <div className="w-12 h-12 rounded-xl bg-[#F0F0F0] group-hover:bg-[#FF3E14]/10 flex items-center justify-center mb-6 transition-colors">
+                                    <Icon className="w-6 h-6 text-brand-dark group-hover:text-brand-primary transition-colors" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-brand-dark">{cat.title}</h3>
-                                    <p className="text-xs text-brand-muted mt-0.5">{cat.desc}</p>
+                                    <h3 className="font-bold text-xl text-brand-dark font-display tracking-tight mb-2 group-hover:text-brand-primary transition-colors">{prod.title}</h3>
+                                    <p className="text-[15px] text-brand-muted leading-snug">{prod.desc}</p>
                                 </div>
                             </motion.div>
                         )

@@ -111,31 +111,35 @@ body {
 /* Component Layer */
 @layer components {
   .btn-primary {
-    @apply bg-brand-dark text-white px-6 py-3 rounded-xl font-bold shadow-subtle hover:shadow-elevated hover:bg-brand-dark/90 transition-all duration-200;
+    @apply bg-brand-primary text-black px-8 py-3.5 rounded-full font-bold shadow-subtle hover:shadow-elevated hover:bg-opacity-90 transition-all duration-200;
   }
 
   .btn-secondary {
-    @apply bg-white border border-selar-border text-brand-dark px-6 py-3 rounded-xl font-bold hover:shadow-elevated transition-all duration-200;
+    @apply bg-black text-white px-8 py-3.5 rounded-full font-bold shadow-subtle hover:shadow-elevated transition-all duration-200;
+  }
+
+  .btn-outline {
+    @apply bg-transparent border-2 border-black text-black px-8 py-3.5 rounded-full font-bold hover:bg-black hover:text-white transition-all duration-200;
   }
 
   .btn-accent {
-    @apply bg-brand-purple text-white px-6 py-3 rounded-xl font-bold shadow-subtle hover:bg-brand-purple/90 transition-all duration-200;
+    @apply bg-brand-dark text-white px-8 py-3.5 rounded-full font-bold shadow-subtle transition-all duration-200;
   }
 
   .input-field {
-    @apply w-full bg-white border border-selar-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-dark/10 focus:border-brand-dark/20 transition-all duration-200;
+    @apply w-full bg-white border border-selar-border rounded-full px-6 py-4 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all duration-200;
   }
 
   .card {
-    @apply bg-white rounded-2xl border border-selar-border shadow-subtle;
+    @apply bg-white rounded-2xl md:rounded-[32px] border border-selar-border shadow-card overflow-hidden;
   }
 
   .card-hover {
-    @apply card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300;
+    @apply card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300;
   }
 
   .badge {
-    @apply px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide;
+    @apply px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide;
   }
 
   .badge-dark {
@@ -147,22 +151,22 @@ body {
   }
 
   .badge-purple {
-    @apply badge bg-brand-purple/10 text-brand-purple;
+    @apply badge bg-[#BDB2FF] text-black;
   }
 
   .badge-green {
-    @apply badge bg-emerald-50 text-emerald-600;
+    @apply badge bg-[#EBF47E] text-black;
   }
 
   .badge-orange {
-    @apply badge bg-orange-50 text-orange-600;
+    @apply badge bg-[#FF98B0] text-black;
   }
 
   .section-heading {
-    @apply font-display font-bold text-4xl text-brand-dark tracking-tight;
+    @apply font-display font-bold text-4xl md:text-5xl lg:text-[-54px] text-brand-dark tracking-[-1.44px] leading-tight;
   }
 
   .section-subtext {
-    @apply text-brand-muted text-base;
+    @apply text-brand-muted text-lg;
   }
 }

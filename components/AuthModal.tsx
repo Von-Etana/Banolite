@@ -76,8 +76,8 @@ export const AuthModal: React.FC = () => {
   const passwordStrength = getPasswordStrength(formData.password);
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative animate-scale-in">
+    <div className="fixed inset-0 bg-brand-dark/40 backdrop-blur-md z-[80] flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-elevated border border-gray-100 relative animate-scale-in">
         <button
           onClick={toggleAuth}
           className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 text-gray-400 transition-colors z-10"
@@ -86,28 +86,28 @@ export const AuthModal: React.FC = () => {
         </button>
 
         <div className="p-8 text-center">
-          <div className="w-16 h-16 bg-brand-purple/10 rounded-2xl flex items-center justify-center mx-auto mb-6 text-brand-purple">
+          <div className="w-16 h-16 bg-brand-primary shadow-md shadow-brand-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6 text-white">
             {isLogin ? <User className="w-8 h-8" /> : <CheckCircle className="w-8 h-8" />}
           </div>
 
-          <h2 className="text-2xl font-display font-bold text-brand-dark mb-2">
+          <h2 className="text-3xl font-display font-extrabold text-brand-dark mb-2">
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>
-          <p className="text-gray-500 text-sm mb-6">
-            {isLogin ? 'Enter your details to access your account' : 'Join Redex to buy or sell digital products'}
+          <p className="text-gray-500 text-sm mb-8">
+            {isLogin ? 'Enter your details to access your account' : 'Join Banolite to buy or sell digital products'}
           </p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-semibold">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 text-left">
+          <form onSubmit={handleSubmit} className="space-y-5 text-left">
             {!isLogin && (
               <>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Full Name</label>
+                  <label className="block text-xs font-bold text-gray-500 mb-2 ml-1 uppercase tracking-wider">Full Name</label>
                   <div className="relative">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -115,7 +115,7 @@ export const AuthModal: React.FC = () => {
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pl-11 focus:outline-none focus:ring-2 focus:ring-brand-purple/20 transition-all"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 pl-12 focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary/50 shadow-sm transition-all text-sm font-medium"
                       placeholder="John Doe"
                     />
                   </div>
@@ -123,31 +123,31 @@ export const AuthModal: React.FC = () => {
 
                 {/* Role Selection */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-2 ml-1">I want to</label>
+                  <label className="block text-xs font-bold text-gray-500 mb-2 ml-1 uppercase tracking-wider">I want to</label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, role: 'buyer' })}
-                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${formData.role === 'buyer'
-                        ? 'border-brand-purple bg-brand-purple/5'
-                        : 'border-gray-200 hover:border-gray-300'
+                      className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.role === 'buyer'
+                        ? 'border-brand-primary bg-brand-primary/5 shadow-sm'
+                        : 'border-gray-100 bg-gray-50 hover:border-gray-300'
                         }`}
                     >
-                      <ShoppingBag className={`w-6 h-6 ${formData.role === 'buyer' ? 'text-brand-purple' : 'text-gray-400'}`} />
-                      <span className={`text-sm font-semibold ${formData.role === 'buyer' ? 'text-brand-purple' : 'text-gray-600'}`}>
+                      <ShoppingBag className={`w-6 h-6 ${formData.role === 'buyer' ? 'text-brand-primary' : 'text-gray-400'}`} />
+                      <span className={`text-sm font-bold ${formData.role === 'buyer' ? 'text-brand-primary' : 'text-gray-600'}`}>
                         Buy Products
                       </span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, role: 'seller' })}
-                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${formData.role === 'seller'
-                        ? 'border-brand-purple bg-brand-purple/5'
-                        : 'border-gray-200 hover:border-gray-300'
+                      className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.role === 'seller'
+                        ? 'border-brand-primary bg-brand-primary/5 shadow-sm'
+                        : 'border-gray-100 bg-gray-50 hover:border-gray-300'
                         }`}
                     >
-                      <Store className={`w-6 h-6 ${formData.role === 'seller' ? 'text-brand-purple' : 'text-gray-400'}`} />
-                      <span className={`text-sm font-semibold ${formData.role === 'seller' ? 'text-brand-purple' : 'text-gray-600'}`}>
+                      <Store className={`w-6 h-6 ${formData.role === 'seller' ? 'text-brand-primary' : 'text-gray-400'}`} />
+                      <span className={`text-sm font-bold ${formData.role === 'seller' ? 'text-brand-primary' : 'text-gray-600'}`}>
                         Sell Products
                       </span>
                     </button>
@@ -157,7 +157,7 @@ export const AuthModal: React.FC = () => {
             )}
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Email Address</label>
+              <label className="block text-xs font-bold text-gray-500 mb-2 ml-1 uppercase tracking-wider">Email Address</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -165,14 +165,14 @@ export const AuthModal: React.FC = () => {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pl-11 focus:outline-none focus:ring-2 focus:ring-brand-purple/20 transition-all"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 pl-12 focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary/50 shadow-sm transition-all text-sm font-medium"
                   placeholder="you@company.com"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Password</label>
+              <label className="block text-xs font-bold text-gray-500 mb-2 ml-1 uppercase tracking-wider">Password</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -180,29 +180,30 @@ export const AuthModal: React.FC = () => {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pl-11 pr-11 focus:outline-none focus:ring-2 focus:ring-brand-purple/20 transition-all"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 pl-12 pr-12 focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary/50 shadow-sm transition-all text-sm font-medium"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-primary transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
 
               {/* Password strength indicator (only for registration) */}
               {!isLogin && formData.password && (
-                <div className="mt-2">
-                  <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+                <div className="mt-3">
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all duration-300 ${passwordStrength.color}`}
                       style={{ width: `${passwordStrength.strength}%` }}
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Password strength: <span className="font-medium">{passwordStrength.label}</span>
+                  <p className="text-xs text-gray-500 mt-1.5 font-medium flex justify-between">
+                    <span>Password strength</span>
+                    <span className={`font-bold ${passwordStrength.color.replace('bg-', 'text-')}`}>{passwordStrength.label}</span>
                   </p>
                 </div>
               )}
@@ -211,11 +212,11 @@ export const AuthModal: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 bg-brand-purple text-white rounded-xl font-bold shadow-lg shadow-brand-purple/25 hover:bg-brand-purple/90 transition-all mt-2 flex items-center justify-center gap-2 disabled:opacity-70"
+              className="w-full py-4 bg-brand-primary text-white rounded-2xl font-bold text-base flex items-center justify-center gap-2 hover:bg-brand-primary/90 transition-all shadow-md hover:shadow-lg disabled:opacity-70"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                   {isLogin ? 'Signing in...' : 'Creating account...'}
                 </>
               ) : (
@@ -224,40 +225,35 @@ export const AuthModal: React.FC = () => {
             </button>
           </form>
 
-          <div className="mt-6 flex items-center gap-4">
-            <div className="h-px bg-gray-100 flex-1"></div>
-            <span className="text-xs text-gray-400 font-medium">OR</span>
-            <div className="h-px bg-gray-100 flex-1"></div>
+          <div className="mt-8 mb-6 flex items-center gap-4">
+            <div className="h-px bg-gray-200 flex-1"></div>
+            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Or</span>
+            <div className="h-px bg-gray-200 flex-1"></div>
           </div>
 
-          <button className="w-full py-3 border border-gray-200 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all mt-6 flex items-center justify-center gap-2">
-            <Github className="w-5 h-5" />
-            Continue with Github
-          </button>
-
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 mb-6">
             <button
               onClick={() => loginAsDemo('buyer')}
-              className="py-2 px-4 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-colors"
+              className="py-3 px-4 bg-brand-primary/10 text-brand-primary rounded-2xl text-sm font-bold hover:bg-brand-primary hover:text-white transition-all shadow-sm flex items-center justify-center"
             >
               Demo Buyer
             </button>
             <button
               onClick={() => loginAsDemo('seller')}
-              className="py-2 px-4 bg-purple-50 text-purple-600 rounded-xl text-xs font-bold hover:bg-purple-100 transition-colors"
+              className="py-3 px-4 bg-brand-dark/10 text-brand-dark rounded-2xl text-sm font-bold hover:bg-brand-dark hover:text-white transition-all shadow-sm flex items-center justify-center"
               title="Access Seller Dashboard"
             >
               Demo Seller
             </button>
           </div>
 
-          <p className="mt-6 text-sm text-gray-500">
+          <p className="mt-6 text-sm text-gray-500 font-medium pt-6 border-t border-gray-100">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               onClick={switchMode}
-              className="font-bold text-brand-purple hover:underline"
+              className="font-bold text-brand-primary hover:text-brand-dark transition-colors"
             >
-              {isLogin ? 'Sign up' : 'Log in'}
+              {isLogin ? 'Sign up for free' : 'Log in here'}
             </button>
           </p>
         </div>

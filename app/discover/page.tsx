@@ -137,7 +137,7 @@ export default function DiscoverPage() {
                                 <div className="h-44 relative overflow-hidden">
                                     <img src={event.image} alt={event.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
                                     <div className="absolute top-3 right-3 bg-white px-2.5 py-1 rounded-lg text-xs font-bold text-brand-dark border border-selar-border/50 shadow-subtle">
-                                        {event.price === 0 ? 'Free' : `$${event.price.toFixed(2)}`}
+                                        {event.price === 0 ? 'Free' : `₦${event.price.toFixed(2)}`}
                                     </div>
                                 </div>
                                 <div className="p-5 flex-1 flex flex-col">

@@ -1,3 +1,21 @@
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Events & Tickets | Banolite',
+    description: 'Find and book tickets for webinars, workshops, and live events on Banolite.',
+    openGraph: {
+        title: 'Events & Tickets | Banolite',
+        description: 'Find and book tickets for webinars, workshops, and live events on Banolite.',
+        type: 'website',
+        siteName: 'Banolite',
+    },
+    twitter: {
+        card: 'summary',
+        title: 'Events & Tickets | Banolite',
+        description: 'Find and book tickets for webinars, workshops, and live events on Banolite.',
+    },
+};
+
 export default function EventsPage() {
     return (
         <div className="min-h-screen pt-32 pb-20 container mx-auto px-6">

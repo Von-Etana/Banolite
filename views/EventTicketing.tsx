@@ -11,7 +11,7 @@ interface EventTicketingProps {
 }
 
 export const EventTicketing: React.FC<EventTicketingProps> = ({ event, onClose }) => {
-    const { buyTicket, user, toggleAuth } = useStore();
+    const { addToCart, user, toggleAuth } = useStore();
     const [isProcessing, setIsProcessing] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -25,12 +25,30 @@ export const EventTicketing: React.FC<EventTicketingProps> = ({ event, onClose }
         }
         setIsProcessing(true);
         try {
-            await buyTicket(event.id, event.price);
+            // Construct a pseudo-product for the cart representing the ticket
+            const ticketProduct: any = {
+                id: `event-${event.id}`,
+                title: `${event.title} - General Admission`,
+                creator: event.organizer,
+                creatorId: 'admin_or_organizer_id', // Adjust as needed
+                price: event.price,
+                description: event.description,
+                coverUrl: event.image,
+                color: 'bg-brand-primary/10',
+                type: 'TICKET',
+            };
+
+            addToCart(ticketProduct, {
+                eventId: event.id,
+                eventDate: event.date.toISOString(),
+                eventLocation: event.type
+            });
+
             setIsSuccess(true);
             setTimeout(() => {
                 onClose();
                 setIsSuccess(false);
-            }, 2000);
+            }, 1000);
         } catch (error) {
             console.error(error);
         } finally {
@@ -102,7 +120,7 @@ export const EventTicketing: React.FC<EventTicketingProps> = ({ event, onClose }
                                     <div>
                                         <p className="text-brand-muted text-sm">Ticket Price</p>
                                         <p className="text-3xl font-bold text-brand-dark">
-                                            {event.price === 0 ? 'Free' : `$${event.price.toFixed(2)}`}
+                                            {event.price === 0 ? 'Free' : `₦${event.price.toFixed(2)}`}
                                         </p>
                                     </div>
                                     <button

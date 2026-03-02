@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
         await supabase.from('notifications').insert({
             user_id: product.creator_id,
             type: 'review',
-            message: `${profile?.name || 'Someone'} left a ${rating}★ review on "${product.title}"`,
+            message: `${profile?.name || 'Someone'} left a ${rating}★ review on "₦{product.title}"`,
             link: `/book/${productId}`,
         });
     }

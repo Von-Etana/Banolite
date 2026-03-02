@@ -25,6 +25,8 @@ export const CheckoutModal: React.FC = () => {
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
+    phone: '',
+    state: '',
     bookingDate: '',
     attendeeName: user?.name || '',
   });
@@ -92,6 +94,8 @@ export const CheckoutModal: React.FC = () => {
     setFormData({
       name: user?.name || '',
       email: user?.email || '',
+      phone: '',
+      state: '',
       bookingDate: '',
       attendeeName: user?.name || '',
     });
@@ -214,6 +218,30 @@ export const CheckoutModal: React.FC = () => {
                         placeholder="Email address"
                       />
                     </div>
+                    <div className="col-span-2 md:col-span-1 relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">+234</span>
+                      <input
+                        required
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        className="w-full bg-brand-light border border-selar-border rounded-xl px-4 py-3 pl-14 focus:outline-none focus:ring-2 focus:ring-brand-dark/10 text-sm transition-all"
+                        placeholder="801 234 5678"
+                      />
+                    </div>
+                    <div className="col-span-2 md:col-span-1">
+                      <select
+                        required
+                        value={formData.state}
+                        onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                        className="w-full bg-brand-light border border-selar-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-dark/10 text-sm transition-all appearance-none"
+                      >
+                        <option value="" disabled>Select your State (Nigeria)</option>
+                        {['Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno', 'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT - Abuja', 'Gombe', 'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'].map(state => (
+                          <option key={state} value={state}>{state}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -291,7 +319,7 @@ export const CheckoutModal: React.FC = () => {
                 {/* Continue */}
                 <button
                   onClick={async () => {
-                    if (!formData.email || !formData.name) return;
+                    if (!formData.email || !formData.name || !formData.phone || !formData.state) return;
                     if (cart.some(i => i.type === 'COACHING') && !formData.bookingDate) return;
                     if (cart.some(i => i.type === 'TICKET') && !formData.attendeeName) return;
 
@@ -300,7 +328,10 @@ export const CheckoutModal: React.FC = () => {
                       // 1. Create the pending order FIRST
                       const order = await createPendingOrder('paystack', formData.email, {
                         bookingDate: formData.bookingDate,
-                        attendeeName: formData.attendeeName
+                        attendeeName: formData.attendeeName,
+                        name: formData.name,
+                        phone: formData.phone,
+                        state: formData.state
                       });
 
                       // 2. Set the ID as the reference for Paystack
@@ -312,7 +343,7 @@ export const CheckoutModal: React.FC = () => {
                     }
                     setIsProcessing(false);
                   }}
-                  disabled={isProcessing || !formData.email || !formData.name || (cart.some(i => i.type === 'COACHING') && !formData.bookingDate) || (cart.some(i => i.type === 'TICKET') && !formData.attendeeName)}
+                  disabled={isProcessing || !formData.email || !formData.name || !formData.phone || !formData.state || (cart.some(i => i.type === 'COACHING') && !formData.bookingDate) || (cart.some(i => i.type === 'TICKET') && !formData.attendeeName)}
                   className="w-full py-3.5 bg-brand-dark text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-black transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Continue to Payment'} <ArrowRight className="w-4 h-4" />

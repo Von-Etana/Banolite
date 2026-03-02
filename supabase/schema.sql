@@ -65,8 +65,9 @@ CREATE TABLE IF NOT EXISTS orders (
     total NUMERIC(10, 2) NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'refunded', 'failed')),
     payment_method TEXT NOT NULL DEFAULT 'paystack',
-    payment_ref TEXT,
     email TEXT NOT NULL,
+    phone TEXT,
+    state TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -79,6 +80,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     quantity INT NOT NULL DEFAULT 1,
     price NUMERIC(10, 2) NOT NULL,
+    metadata JSONB DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -115,6 +117,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     coach_id TEXT NOT NULL,
+    order_item_id UUID REFERENCES order_items(id) ON DELETE SET NULL,
     date TIMESTAMPTZ NOT NULL,
     status TEXT NOT NULL DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'completed', 'cancelled')),
     meet_link TEXT,
@@ -129,6 +132,7 @@ CREATE TABLE IF NOT EXISTS tickets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     event_id TEXT NOT NULL,
+    order_item_id UUID REFERENCES order_items(id) ON DELETE SET NULL,
     qr_code TEXT,
     status TEXT NOT NULL DEFAULT 'valid' CHECK (status IN ('valid', 'used', 'refunded')),
     amount NUMERIC(10, 2) NOT NULL,
@@ -158,62 +162,126 @@ INSERT INTO site_content (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
 -- Profiles
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON profiles;
 CREATE POLICY "Public profiles are viewable by everyone" ON profiles FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
 CREATE POLICY "Users can update their own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
 CREATE POLICY "Users can insert their own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- Products
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Products are viewable by everyone" ON products;
 CREATE POLICY "Products are viewable by everyone" ON products FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Sellers can insert their own products" ON products;
 CREATE POLICY "Sellers can insert their own products" ON products FOR INSERT WITH CHECK (auth.uid() = creator_id);
+DROP POLICY IF EXISTS "Sellers can update their own products" ON products;
 CREATE POLICY "Sellers can update their own products" ON products FOR UPDATE USING (auth.uid() = creator_id);
+DROP POLICY IF EXISTS "Sellers can delete their own products" ON products;
 CREATE POLICY "Sellers can delete their own products" ON products FOR DELETE USING (auth.uid() = creator_id);
 
 -- Orders
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view their own orders" ON orders;
 CREATE POLICY "Users can view their own orders" ON orders FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can create orders" ON orders;
 CREATE POLICY "Users can create orders" ON orders FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Order Items
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view their order items" ON order_items;
 CREATE POLICY "Users can view their order items" ON order_items FOR SELECT
     USING (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can create order items" ON order_items;
 CREATE POLICY "Users can create order items" ON order_items FOR INSERT
     WITH CHECK (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid()));
 
 -- Reviews
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Reviews are viewable by everyone" ON reviews;
 CREATE POLICY "Reviews are viewable by everyone" ON reviews FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Users can create reviews" ON reviews;
 CREATE POLICY "Users can create reviews" ON reviews FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Notifications
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view their own notifications" ON notifications;
 CREATE POLICY "Users can view their own notifications" ON notifications FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update their own notifications" ON notifications;
 CREATE POLICY "Users can update their own notifications" ON notifications FOR UPDATE USING (auth.uid() = user_id);
 
 -- Bookings
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view their own bookings" ON bookings;
 CREATE POLICY "Users can view their own bookings" ON bookings FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can create bookings" ON bookings;
 CREATE POLICY "Users can create bookings" ON bookings FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Tickets
 ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view their own tickets" ON tickets;
 CREATE POLICY "Users can view their own tickets" ON tickets FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can create tickets" ON tickets;
 CREATE POLICY "Users can create tickets" ON tickets FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Site Content
 ALTER TABLE site_content ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Site content is viewable by everyone" ON site_content;
 CREATE POLICY "Site content is viewable by everyone" ON site_content FOR SELECT USING (true);
 -- Admin updates are done via service role key, so no RLS policy needed for UPDATE
 
 -- ============================================
--- STORAGE BUCKETS (run in SQL or create manually)
+-- STORAGE BUCKETS
 -- ============================================
--- Create these buckets manually in Supabase Dashboard > Storage:
---   1. "covers"  (public)
---   2. "files"   (private)
---   3. "avatars" (public)
---   4. "banners" (public)
+-- Insert buckets if they don't exist
+INSERT INTO storage.buckets (id, name, public) VALUES ('covers', 'covers', true) ON CONFLICT (id) DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('files', 'files', false) ON CONFLICT (id) DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('banners', 'banners', true) ON CONFLICT (id) DO NOTHING;
+
+-- Storage RLS Policies
+-- COVERS (Public Read, Authenticated Insert/Update/Delete)
+DROP POLICY IF EXISTS "Public Access for covers" ON storage.objects;
+CREATE POLICY "Public Access for covers" ON storage.objects FOR SELECT USING (bucket_id = 'covers');
+DROP POLICY IF EXISTS "Auth Insert for covers" ON storage.objects;
+CREATE POLICY "Auth Insert for covers" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'covers' AND auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Auth Update for covers" ON storage.objects;
+CREATE POLICY "Auth Update for covers" ON storage.objects FOR UPDATE USING (bucket_id = 'covers' AND auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Auth Delete for covers" ON storage.objects;
+CREATE POLICY "Auth Delete for covers" ON storage.objects FOR DELETE USING (bucket_id = 'covers' AND auth.role() = 'authenticated');
+
+-- AVATARS (Public Read, Authenticated Insert/Update/Delete)
+DROP POLICY IF EXISTS "Public Access for avatars" ON storage.objects;
+CREATE POLICY "Public Access for avatars" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+DROP POLICY IF EXISTS "Auth Insert for avatars" ON storage.objects;
+CREATE POLICY "Auth Insert for avatars" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Auth Update for avatars" ON storage.objects;
+CREATE POLICY "Auth Update for avatars" ON storage.objects FOR UPDATE USING (bucket_id = 'avatars' AND auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Auth Delete for avatars" ON storage.objects;
+CREATE POLICY "Auth Delete for avatars" ON storage.objects FOR DELETE USING (bucket_id = 'avatars' AND auth.role() = 'authenticated');
+
+-- BANNERS (Public Read, Authenticated Insert/Update/Delete)
+DROP POLICY IF EXISTS "Public Access for banners" ON storage.objects;
+CREATE POLICY "Public Access for banners" ON storage.objects FOR SELECT USING (bucket_id = 'banners');
+DROP POLICY IF EXISTS "Auth Insert for banners" ON storage.objects;
+CREATE POLICY "Auth Insert for banners" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'banners' AND auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Auth Update for banners" ON storage.objects;
+CREATE POLICY "Auth Update for banners" ON storage.objects FOR UPDATE USING (bucket_id = 'banners' AND auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Auth Delete for banners" ON storage.objects;
+CREATE POLICY "Auth Delete for banners" ON storage.objects FOR DELETE USING (bucket_id = 'banners' AND auth.role() = 'authenticated');
+
+-- FILES (Private: Authenticated Read, Authenticated Insert/Update/Delete)
+-- Note: Further restriction could be applied to ensure only the owner/buyer can read, 
+-- but for Banolite backend generates signed URLs or handles via Service Role. 
+-- For now, allowing authenticated users to insert their product files.
+DROP POLICY IF EXISTS "Auth Read for files" ON storage.objects;
+CREATE POLICY "Auth Read for files" ON storage.objects FOR SELECT USING (bucket_id = 'files' AND auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Auth Insert for files" ON storage.objects;
+CREATE POLICY "Auth Insert for files" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'files' AND auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Auth Update for files" ON storage.objects;
+CREATE POLICY "Auth Update for files" ON storage.objects FOR UPDATE USING (bucket_id = 'files' AND auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Auth Delete for files" ON storage.objects;
+CREATE POLICY "Auth Delete for files" ON storage.objects FOR DELETE USING (bucket_id = 'files' AND auth.role() = 'authenticated');
 
 -- ============================================
 -- FUNCTIONS: auto-create profile on signup

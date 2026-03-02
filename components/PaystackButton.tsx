@@ -12,8 +12,8 @@ interface PaystackButtonProps {
     children: React.ReactNode;
 }
 
-// Replace with your own Paystack test/live public key
-const PAYSTACK_PUBLIC_KEY = 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+// Reads from NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY env variable (set in .env.local)
+const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
 export const PaystackButton: React.FC<PaystackButtonProps> = ({
     email,

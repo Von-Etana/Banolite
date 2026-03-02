@@ -1,3 +1,21 @@
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Coaching & Appointments | Banolite',
+    description: 'Book 1-on-1 coaching sessions with expert trainers and mentors on Banolite.',
+    openGraph: {
+        title: 'Coaching & Appointments | Banolite',
+        description: 'Book 1-on-1 coaching sessions with expert trainers and mentors on Banolite.',
+        type: 'website',
+        siteName: 'Banolite',
+    },
+    twitter: {
+        card: 'summary',
+        title: 'Coaching & Appointments | Banolite',
+        description: 'Book 1-on-1 coaching sessions with expert trainers and mentors on Banolite.',
+    },
+};
+
 export default function CoachingPage() {
     return (
         <div className="min-h-screen pt-32 pb-20 container mx-auto px-6">
