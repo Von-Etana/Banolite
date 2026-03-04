@@ -9,21 +9,21 @@ const steps = [
         title: 'Create Your Store',
         description: 'Sign up in seconds. Personalize your storefront with your brand colors, banner, and bio.',
         icon: UserPlus,
-        color: 'bg-brand-purple/10 text-brand-purple border-brand-purple/20'
+        color: 'text-purple-600 border-purple-200'
     },
     {
         id: '02',
         title: 'Upload Assets',
         description: 'Upload your eBooks, video courses, or set up calendar slots for coaching and events.',
         icon: UploadCloud,
-        color: 'bg-blue-50 text-blue-600 border-blue-100'
+        color: 'text-blue-600 border-blue-200'
     },
     {
         id: '03',
         title: 'Launch & Earn',
         description: 'Share your link. We handle the payment processing, file delivery, and automated emails.',
         icon: Rocket,
-        color: 'bg-brand-orange/10 text-brand-orange border-brand-orange/20'
+        color: 'text-orange-600 border-orange-200'
     }
 ];
 
@@ -61,11 +61,11 @@ export const HowToJoinSection: React.FC = () => {
                             transition={{ duration: 0.5, delay: index * 0.15 }}
                             className="bg-white/5 border border-white/10 p-8 rounded-[2rem] relative group hover:bg-white/10 transition-colors"
                         >
-                            <div className="absolute top-8 right-8 text-5xl font-display font-bold text-white/5 group-hover:text-white/10 transition-colors">
+                            <div className="absolute top-8 right-8 text-5xl font-display font-bold text-white/20 group-hover:text-white/40 transition-colors">
                                 {step.id}
                             </div>
 
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 border ${step.color} bg-white`}>
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 border ${step.color} bg-white shadow-sm`}>
                                 <step.icon className="w-6 h-6" />
                             </div>
 

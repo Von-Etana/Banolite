@@ -9,19 +9,19 @@ const resources = [
       title: 'Learning Hub',
       description: 'Free live training workshops, webinars, downloadable guides, and more.',
       icon: BookOpen,
-      image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800'
+      image: '/learning-hub.jpg'
    },
    {
       title: '24/7 Support',
       description: 'Our team is available 24/7 to provide answers and solve problems.',
       icon: LifeBuoy,
-      image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80&w=800'
+      image: '/support.webp'
    },
    {
       title: 'A Vibrant Community',
       description: 'Get support and advice from expert creators who know the platform.',
       icon: HeartHandshake,
-      image: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&q=80&w=800'
+      image: '/community.jpg'
    }
 ];
 

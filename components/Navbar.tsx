@@ -46,10 +46,9 @@ export const Navbar: React.FC = () => {
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-brand-dark rounded-lg flex items-center justify-center text-white font-bold text-sm">
-              R
-            </div>
-            <span className="font-display font-bold text-lg text-brand-dark">Redex</span>
+            <span className="font-display font-black text-2xl tracking-tighter text-brand-dark">
+              BANOLITE.
+            </span>
           </Link>
 
           {/* Desktop Links */}

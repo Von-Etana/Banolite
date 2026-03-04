@@ -1,6 +1,6 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Product, CartItem, User, Order, Review, Notification, StoredUser, UserRole, SiteContent, Booking, Ticket, AnalyticsSummary } from '../types';
+import { Product, CartItem, User, Order, Review, Notification, StoredUser, UserRole, SiteContent, Booking, Ticket, AnalyticsSummary, Affiliate } from '../types';
 import { PRODUCTS } from '../constants';
 import { createClient } from '../lib/supabase/client';
 import {
@@ -56,7 +56,7 @@ interface StoreContextType {
   logout: () => void;
 
   // Order actions
-  createPendingOrder: (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string; name?: string; phone?: string; state?: string }) => Promise<Order>;
+  createPendingOrder: (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string; name?: string; phone?: string; state?: string; affiliateId?: string }) => Promise<Order>;
   getUserOrders: () => Order[];
 
   // Booking & Ticket actions
@@ -88,6 +88,11 @@ interface StoreContextType {
   getAllUsers: () => Promise<User[]>;
   updateUserRole: (userId: string, role: UserRole) => void;
   deleteUser: (userId: string) => void;
+
+  // Affiliate actions
+  affiliates: Affiliate[];
+  getAffiliates: () => void;
+  createAffiliate: (productId: string, commissionRate: number) => Promise<Affiliate>;
 
   // CMS actions
   updateSiteContent: (content: SiteContent) => void;
@@ -147,6 +152,21 @@ function dbToUser(profile: any): StoredUser {
   };
 }
 
+// Helper to transform DB affiliate to frontend Affiliate type
+function dbToAffiliate(row: any): Affiliate {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    productId: row.product_id,
+    creatorId: row.creator_id,
+    commissionRate: parseFloat(row.commission_rate) || 0,
+    customLink: row.custom_link,
+    clicks: row.clicks || 0,
+    conversions: row.conversions || 0,
+    createdAt: new Date(row.created_at),
+  };
+}
+
 // Fallback initial products from constants
 const getInitialProducts = (): Product[] => {
   return PRODUCTS.map(p => ({
@@ -182,6 +202,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     platformFeePercentage: 5,
     platformTaxPercentage: 10
   });
+
+  const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
 
   // ===== SUPABASE AUTH LISTENER =====
   useEffect(() => {
@@ -571,7 +593,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ===== ORDER ACTIONS (calls API route) =====
-  const createPendingOrder = useCallback(async (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string; name?: string; phone?: string; state?: string }): Promise<Order> => {
+  const createPendingOrder = useCallback(async (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string; name?: string; phone?: string; state?: string; affiliateId?: string }): Promise<Order> => {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
@@ -588,6 +610,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       paymentMethod,
       email,
       additionalInfo, // Pass extra fields to API
+      affiliateId: additionalInfo?.affiliateId,
     };
 
     const res = await fetch('/api/orders', {
@@ -969,6 +992,44 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }).eq('id', 1);
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ===== AFFILIATE ACTIONS =====
+  const getAffiliates = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase.from('affiliates').select('*').eq('creator_id', user.id);
+    if (data) {
+      setAffiliates(data.map(dbToAffiliate));
+    }
+  }, [user]);
+
+  const createAffiliate = useCallback(async (productId: string, commissionRate: number): Promise<Affiliate> => {
+    if (!user) throw new Error("Not logged in");
+    const customLink = `ref-${generateId().substring(0, 8)}`;
+
+    // We mock the user_id for the invite code for now, or assume the creator is creating a generic affiliate link
+    // Let's create an "invite" affiliate link that doesn't belong to a specific user yet (can track clicks anonymously)
+    const { data, error } = await supabase
+      .from('affiliates')
+      .insert({
+        user_id: user.id, // Setting strictly to creator for now unless specific user exists
+        product_id: productId,
+        creator_id: user.id,
+        commission_rate: commissionRate,
+        custom_link: customLink,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      toast.error('Failed to create affiliate link');
+      throw error;
+    }
+
+    const newAffiliate = dbToAffiliate(data);
+    setAffiliates(prev => [newAffiliate, ...prev]);
+    toast.success('Affiliate link created');
+    return newAffiliate;
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <StoreContext.Provider value={{
       cart, isCartOpen, isAuthOpen, isCheckoutOpen, user, orders, reviews, products, notifications, cartTotal, siteContent, isLoading,
@@ -978,7 +1039,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       login, register, logout, createPendingOrder, getUserOrders, addReview, getProductReviews,
       addProduct, updateProduct, deleteProduct, getSellerProducts,
       updateUserProfile, markNotificationRead, getUnreadNotifications, getSellerStats,
-      loginAsDemo, getAllUsers, updateUserRole, deleteUser, updateSiteContent
+      loginAsDemo, getAllUsers, updateUserRole, deleteUser, updateSiteContent,
+      affiliates, getAffiliates, createAffiliate
     }}>
       {children}
     </StoreContext.Provider>

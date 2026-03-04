@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
         const total = order.total;
         const buyerEmail = order.email;
         const buyerId = order.user_id;
+        const affiliateId = order.affiliate_id;
 
         // --- FULFILLMENT LOGIC MOVED FROM POST /api/orders ---
 
@@ -154,13 +155,38 @@ export async function POST(req: NextRequest) {
 
         // E. Notify and update sellers
         const sellerIds = [...new Set(items.map((i: any) => i.creatorId).filter(Boolean))];
+
+        // Extract Affiliate Details if present
+        let commissionRate = 0;
+        let affiliateUserId = null;
+
+        if (affiliateId) {
+            const { data: affData } = await supabase.from('affiliates').select('user_id, commission_rate').eq('id', affiliateId).single();
+            if (affData) {
+                commissionRate = affData.commission_rate || 0;
+                affiliateUserId = affData.user_id;
+
+                // Update affiliate conversions
+                const { data: currentAff } = await supabase.from('affiliates').select('conversions').eq('id', affiliateId).single();
+                if (currentAff) {
+                    await supabase.from('affiliates').update({ conversions: (currentAff.conversions || 0) + 1 }).eq('id', affiliateId);
+                }
+            }
+        }
+
         for (const sellerId of sellerIds) {
             const sellerItems = items.filter((i: any) => i.creatorId === sellerId);
             const sellerTotal = sellerItems.reduce((sum: number, i: any) => sum + i.price * (i.quantity || 1), 0);
-            const sellerFee = sellerTotal * 0.05; // 5% platform fee (example)
-            const sellerNet = sellerTotal - sellerFee;
+            const platformFee = sellerTotal * 0.05; // 5% platform fee (example)
 
-            // Update Seller Wallet (Simple increment)
+            let affiliateCommission = 0;
+            if (affiliateUserId && commissionRate > 0) {
+                affiliateCommission = sellerTotal * (commissionRate / 100);
+            }
+
+            const sellerNet = sellerTotal - platformFee - affiliateCommission;
+
+            // Update Seller Wallet
             const { data: sellerProfile } = await supabase.from('profiles').select('wallet_balance, name, email').eq('id', sellerId).single();
             if (sellerProfile) {
                 await supabase.from('profiles').update({
@@ -171,8 +197,8 @@ export async function POST(req: NextRequest) {
                 await supabase.from('notifications').insert({
                     user_id: sellerId,
                     type: 'sale',
-                    message: `You made a sale! ₦${sellerTotal.toFixed(2)} from ${sellerItems.length} item(s).`,
-                    link: '/dashboard/seller',
+                    message: `You made a sale! ₦${sellerTotal.toFixed(2)} from ${sellerItems.length} item(s).${affiliateCommission > 0 ? ` (₦${affiliateCommission.toFixed(2)} paid to affiliate)` : ''}`,
+                    link: '/store',
                 });
 
                 // Email notification
@@ -183,6 +209,25 @@ export async function POST(req: NextRequest) {
                     amount: sellerTotal, // Show gross amount
                     buyerName,
                 }).catch(console.error);
+            }
+
+            // Update Affiliate Wallet
+            if (affiliateUserId && affiliateCommission > 0) {
+                const { data: affProfile } = await supabase.from('profiles').select('wallet_balance, affiliate_earnings').eq('id', affiliateUserId).single();
+                if (affProfile) {
+                    await supabase.from('profiles').update({
+                        wallet_balance: (affProfile.wallet_balance || 0) + affiliateCommission,
+                        affiliate_earnings: (affProfile.affiliate_earnings || 0) + affiliateCommission
+                    }).eq('id', affiliateUserId);
+
+                    // Notify affiliate
+                    await supabase.from('notifications').insert({
+                        user_id: affiliateUserId,
+                        type: 'sale',
+                        message: `You earned ₦${affiliateCommission.toFixed(2)} in affiliate commission!`,
+                        link: '/dashboard',
+                    });
+                }
             }
         }
     }

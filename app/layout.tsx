@@ -30,8 +30,8 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
-            <body className={`${sans.variable} ${display.variable} font-sans min-h-screen bg-cream text-brand-dark selection:bg-brand-purple selection:text-white`}>
+        <html lang="en" className={`${sans.variable} ${display.variable}`}>
+            <body className="font-sans min-h-screen bg-cream text-brand-dark selection:bg-brand-purple selection:text-white">
                 <Providers>
                     <Toaster
                         position="top-center"

@@ -8,8 +8,8 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['"Inter"', 'sans-serif'],
-                display: ['"Inter"', 'sans-serif'],
+                sans: ['var(--font-sans)', 'sans-serif'],
+                display: ['var(--font-display)', 'sans-serif'],
             },
             colors: {
                 cream: '#FAF7F2',

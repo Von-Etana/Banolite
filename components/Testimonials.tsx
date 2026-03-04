@@ -9,21 +9,21 @@ const testimonials = [
       quote: '"I help people take the skills that they have, identify those, and turn them into income," Justin shares. As part of our vibrant creator community, Justin’s story serves as proof and inspiration that taking that big leap of faith, combined with robust resources, can be the prelude to unmatched success.',
       tags: ['Business', 'Courses'],
       gradient: 'from-transparent to-[#EBF47E]',
-      image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&q=80&w=600'
+      image: '/justin.jpeg'
    },
    {
-      name: 'Jacquelyn',
-      quote: '“It just was organic, the way that I created a course for myself and for my audience. I really leaned into the community, asking them what they wanted to learn, what they struggled with, their top two fitness goals,” Jacquelyn says. “I just put together little challenges to get started online.”',
+      name: 'Michael',
+      quote: '“It just was organic, the way that I created a course for myself and for my audience. I really leaned into the community, asking them what they wanted to learn, what they struggled with, their top two fitness goals,” Michael says. “I just put together little challenges to get started online.”',
       tags: ['Fitness', 'Courses'],
       gradient: 'from-transparent to-[#FF757A]',
-      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=600'
+      image: '/michael.jpeg'
    },
    {
       name: 'Eno Eka',
       quote: '“I had a successful six-figure career, traveling and having fun. I always documented what I was doing and the projects I was working on, and I started influencing [my audience] to see business analysis as a career because I shared how much fun it was.”',
       tags: ['Education', 'Coaching'],
       gradient: 'from-transparent to-[#BDB2FF]',
-      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600'
+      image: '/eno.jpg'
    }
 ];
 

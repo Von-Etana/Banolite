@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { useCurrency } from '../context/CurrencyContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { PaystackButton } from './PaystackButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -17,6 +17,7 @@ export const CheckoutModal: React.FC = () => {
   const { cart, createPendingOrder, clearCart, cartTotal, siteContent, user, toggleAuth, isCheckoutOpen, toggleCheckout } = useStore();
   const { formatPrice } = useCurrency();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [step, setStep] = useState<CheckoutStep>('review');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -331,7 +332,8 @@ export const CheckoutModal: React.FC = () => {
                         attendeeName: formData.attendeeName,
                         name: formData.name,
                         phone: formData.phone,
-                        state: formData.state
+                        state: formData.state,
+                        affiliateId: searchParams.get('ref') || undefined
                       });
 
                       // 2. Set the ID as the reference for Paystack

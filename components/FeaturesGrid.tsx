@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Globe, CreditCard, Smartphone, BarChart3, Users, FileText, Mail, Filter, Sparkles } from 'lucide-react';
+import { Globe, CreditCard, Ticket, BarChart3, Users, FileText, Mail, Filter, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 const features = [
@@ -18,10 +18,10 @@ const features = [
       icon: CreditCard
    },
    {
-      title: 'MOBILE APP',
-      headline: 'A custom branded app that goes where they go.',
+      title: 'TICKET SALES',
+      headline: 'Sell tickets for your live events, webinars, and masterclasses.',
       color: 'bg-[#A1DBE3]',
-      icon: Smartphone
+      icon: Ticket
    },
    {
       title: 'ANALYTICS',

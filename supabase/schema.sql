@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     social_twitter TEXT,
     social_website TEXT,
     purchased_product_ids TEXT[] DEFAULT '{}',
+    affiliate_earnings NUMERIC(12, 2) NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -57,6 +58,21 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 -- ============================================
+-- AFFILIATES
+-- ============================================
+CREATE TABLE IF NOT EXISTS affiliates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    creator_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    commission_rate NUMERIC(5, 2) NOT NULL DEFAULT 20.0,
+    custom_link TEXT UNIQUE NOT NULL,
+    clicks INT NOT NULL DEFAULT 0,
+    conversions INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ============================================
 -- ORDERS
 -- ============================================
 CREATE TABLE IF NOT EXISTS orders (
@@ -65,6 +81,7 @@ CREATE TABLE IF NOT EXISTS orders (
     total NUMERIC(10, 2) NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'refunded', 'failed')),
     payment_method TEXT NOT NULL DEFAULT 'paystack',
+    affiliate_id UUID REFERENCES affiliates(id) ON DELETE SET NULL,
     email TEXT NOT NULL,
     phone TEXT,
     state TEXT,
@@ -195,6 +212,17 @@ CREATE POLICY "Users can view their order items" ON order_items FOR SELECT
 DROP POLICY IF EXISTS "Users can create order items" ON order_items;
 CREATE POLICY "Users can create order items" ON order_items FOR INSERT
     WITH CHECK (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid()));
+
+-- Affiliates
+ALTER TABLE affiliates ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Affiliates are viewable by everyone" ON affiliates;
+CREATE POLICY "Affiliates are viewable by everyone" ON affiliates FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Creators can insert their own affiliates" ON affiliates;
+CREATE POLICY "Creators can insert their own affiliates" ON affiliates FOR INSERT WITH CHECK (auth.uid() = creator_id);
+DROP POLICY IF EXISTS "Creators can update their own affiliates" ON affiliates;
+CREATE POLICY "Creators can update their own affiliates" ON affiliates FOR UPDATE USING (auth.uid() = creator_id);
+DROP POLICY IF EXISTS "Creators can delete their own affiliates" ON affiliates;
+CREATE POLICY "Creators can delete their own affiliates" ON affiliates FOR DELETE USING (auth.uid() = creator_id);
 
 -- Reviews
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;

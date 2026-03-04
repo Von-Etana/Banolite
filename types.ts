@@ -207,3 +207,15 @@ export interface Ticket {
   status: 'valid' | 'used' | 'refunded';
   amount: number;
 }
+
+export interface Affiliate {
+  id: string;
+  userId: string;
+  productId: string;
+  creatorId: string;
+  commissionRate: number;
+  customLink: string;
+  clicks: number;
+  conversions: number;
+  createdAt: Date;
+}

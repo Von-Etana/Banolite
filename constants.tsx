@@ -109,7 +109,7 @@ export const TESTIMONIALS: Testimonial[] = [
     name: 'Alex Johnson',
     role: 'Product Designer',
     avatar: 'https://i.pravatar.cc/150?img=68',
-    content: 'Selling my digital assets on Redex has been a game changer. The instant payouts and simple course hosting are world-class.',
+    content: 'Selling my digital assets on Banolite has been a game changer. The instant payouts and simple course hosting are world-class.',
     rating: 5
   },
   {
@@ -125,7 +125,7 @@ export const TESTIMONIALS: Testimonial[] = [
     name: 'James Wilson',
     role: 'eBook Author',
     avatar: 'https://i.pravatar.cc/150?img=12',
-    content: 'I\'ve tried many platforms, but Redex offers the best commission rates and the smoothest buyer experience.',
+    content: 'I\'ve tried many platforms, but Banolite offers the best commission rates and the smoothest buyer experience.',
     rating: 5
   }
 ];

@@ -6,7 +6,6 @@ import { AboutSection } from '../components/AboutSection';
 import { HowToJoinSection } from '../components/HowToJoinSection';
 import { DiscoverProducts } from '../components/DiscoverSection';
 import { Testimonials } from '../components/Testimonials';
-import { TopicsSection } from '../components/TopicsSection';
 import { FaqSection } from '../components/FAQSection';
 import { CTASection } from '../components/CTASection';
 
@@ -19,7 +18,6 @@ export const Home: React.FC = () => {
       <HowToJoinSection />
       <DiscoverProducts />
       <Testimonials />
-      <TopicsSection />
       <FaqSection />
       <CTASection />
     </div>

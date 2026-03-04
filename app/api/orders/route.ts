@@ -20,13 +20,22 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { items, total, paymentMethod, paymentRef, email, additionalInfo } = body;
+        const { items, total, paymentMethod, paymentRef, email, additionalInfo, affiliateId } = body;
 
         if (!items || !items.length || !total) {
             return NextResponse.json({ error: 'Missing order data' }, { status: 400 });
         }
 
-        // 1. Create order
+        // 1. Resolve Affiliate ID if provided
+        let resolvedAffiliateId = null;
+        if (affiliateId) {
+            const { data: aff } = await supabase.from('affiliates').select('id').eq('custom_link', affiliateId).single();
+            if (aff) {
+                resolvedAffiliateId = aff.id;
+            }
+        }
+
+        // 2. Create order
         const { data: order, error: orderError } = await supabase
             .from('orders')
             .insert({
@@ -38,6 +47,7 @@ export async function POST(req: NextRequest) {
                 email: email || user.email,
                 phone: additionalInfo?.phone || null,
                 state: additionalInfo?.state || null,
+                affiliate_id: resolvedAffiliateId,
             })
             .select()
             .single();

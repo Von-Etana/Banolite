@@ -9,12 +9,12 @@ import {
    BookOpen, Image as ImageIcon, BarChart3, User as UserIcon,
    X, CheckCircle, LayoutGrid, Wallet, History,
    ChevronRight, FileText, Video, Ticket, Briefcase,
-   ShoppingCart, Sparkles, TrendingDown, Save, Upload, Eye
+   ShoppingCart, Sparkles, TrendingDown, Save, Upload, Eye, Share2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Product, Payout, ProductType, Order } from '../types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-type Tab = 'overview' | 'products' | 'customers' | 'wallet' | 'settings';
+type Tab = 'overview' | 'products' | 'customers' | 'affiliates' | 'wallet' | 'settings';
 
 export const CreatorDashboard: React.FC = () => {
    const {
@@ -27,7 +27,10 @@ export const CreatorDashboard: React.FC = () => {
       orders,
       reviews,
       siteContent,
-      updateUserProfile
+      updateUserProfile,
+      affiliates,
+      getAffiliates,
+      createAffiliate
    } = useStore();
    const router = useRouter();
    const [activeTab, setActiveTab] = useState<Tab>('overview');
@@ -37,6 +40,8 @@ export const CreatorDashboard: React.FC = () => {
    const [isEditing, setIsEditing] = useState(false);
    const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
    const [isPreviewMode, setIsPreviewMode] = useState(false);
+   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+   const [inviteForm, setInviteForm] = useState({ productId: '', commissionRate: 20 });
 
    // Profile Edit State (now Settings)
    const [profileForm, setProfileForm] = useState({
@@ -91,6 +96,12 @@ export const CreatorDashboard: React.FC = () => {
    const sellerProducts = products.filter(p => p.creatorId === user.id);
    const sellerOrders = orders.filter(o => o.items.some(i => sellerProducts.some(sp => sp.id === i.id)));
    const stats = getSellerStats();
+
+   useEffect(() => {
+      if (activeTab === 'affiliates') {
+         getAffiliates();
+      }
+   }, [activeTab, getAffiliates]);
 
    const handleOpenAdd = () => {
       setProductForm({
@@ -170,6 +181,21 @@ export const CreatorDashboard: React.FC = () => {
       });
    };
 
+   const handleInviteAffiliate = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!inviteForm.productId) {
+         import('react-hot-toast').then(mod => mod.default.error("Please select a product"));
+         return;
+      }
+      try {
+         await createAffiliate(inviteForm.productId, inviteForm.commissionRate);
+         setIsInviteModalOpen(false);
+         setInviteForm({ productId: '', commissionRate: 20 });
+      } catch (err) {
+         console.error('Failed to create affiliate', err);
+      }
+   };
+
    const getTypeIcon = (type: ProductType) => {
       switch (type) {
          case 'COURSE': return <Video className="w-5 h-5" />;
@@ -183,6 +209,7 @@ export const CreatorDashboard: React.FC = () => {
       { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'products', label: 'My Products', icon: Package },
       { id: 'customers', label: 'Customers', icon: Users },
+      { id: 'affiliates', label: 'Affiliates', icon: Share2 },
       { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign },
       { id: 'settings', label: 'Store Settings', icon: Settings },
    ];
@@ -272,7 +299,7 @@ export const CreatorDashboard: React.FC = () => {
                         </div>
                         <div>
                            <p className="text-sm text-gray-500 font-medium">Total Sales</p>
-                           <h3 className="text-2xl font-bold text-brand-dark">{stats.totalSales}</h3>
+                           <h3 className="text-2xl font-bold text-brand-dark">₦{stats.totalSales || 0}</h3>
                         </div>
                      </div>
                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
@@ -550,7 +577,13 @@ export const CreatorDashboard: React.FC = () => {
                                  {siteContent.platformFeePercentage}% Fee deducted
                               </span>
                            </div>
-                           <h3 className="text-4xl font-bold mb-8">₦{(user.walletBalance || 0).toFixed(2)}</h3>
+                           <h3 className="text-4xl font-bold mb-4">₦{(user.walletBalance || 0).toFixed(2)}</h3>
+
+                           <div className="bg-white/10 rounded-xl p-3 mb-6 flex justify-between items-center text-sm">
+                              <span className="font-medium text-white/80">From Affiliate Sales</span>
+                              <span className="font-bold text-green-400">+₦{((user as any).affiliateEarnings || 0).toFixed(2)}</span>
+                           </div>
+
                            <button className="w-full bg-white text-brand-dark py-4 rounded-xl font-bold hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
                               <ArrowDownCircle className="w-5 h-5" />
                               Withdraw Earnings
@@ -595,6 +628,112 @@ export const CreatorDashboard: React.FC = () => {
                            </table>
                         </div>
                      </div>
+                  </div>
+               </div>
+            )}
+
+            {activeTab === 'affiliates' && (
+               <div className="animate-fade-in space-y-8">
+                  <div className="flex justify-between items-center">
+                     <div>
+                        <h1 className="font-display font-bold text-3xl text-brand-dark">Affiliate Program</h1>
+                        <p className="text-gray-500">Manage marketers and track your affiliate sales</p>
+                     </div>
+                     <button
+                        onClick={() => setIsInviteModalOpen(true)}
+                        className="bg-selar-black text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-black transition-all shadow-lg shadow-subtle hover:shadow-elevated"
+                     >
+                        <Plus className="w-5 h-5" />
+                        Invite Affiliate
+                     </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="w-12 h-12 bg-purple-50 border border-purple-100 shadow-sm rounded-xl flex items-center justify-center text-purple-600">
+                           <Share2 className="w-6 h-6" />
+                        </div>
+                        <div>
+                           <p className="text-sm text-gray-500 font-medium">Active Affiliates</p>
+                           <h3 className="text-2xl font-bold text-brand-dark">0</h3>
+                        </div>
+                     </div>
+                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="w-12 h-12 bg-blue-50 border border-blue-100 shadow-sm rounded-xl flex items-center justify-center text-blue-600">
+                           <Eye className="w-6 h-6" />
+                        </div>
+                        <div>
+                           <p className="text-sm text-gray-500 font-medium">Link Clicks</p>
+                           <h3 className="text-2xl font-bold text-brand-dark">0</h3>
+                        </div>
+                     </div>
+                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="w-12 h-12 bg-green-50 border border-green-100 shadow-sm rounded-xl flex items-center justify-center text-green-600">
+                           <TrendingUp className="w-6 h-6" />
+                        </div>
+                        <div>
+                           <p className="text-sm text-gray-500 font-medium">Affiliate Sales</p>
+                           <h3 className="text-2xl font-bold text-brand-dark">₦{stats.totalSales}</h3>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm mt-8">
+                     <table className="w-full text-left">
+                        <thead className="bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                           <tr>
+                              <th className="px-6 py-4">Affiliate</th>
+                              <th className="px-6 py-4">Product</th>
+                              <th className="px-6 py-4">Commission</th>
+                              <th className="px-6 py-4">Clicks / Sales</th>
+                              <th className="px-6 py-4 text-right">Actions</th>
+                           </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                           {affiliates.length === 0 ? (
+                              <tr>
+                                 <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                                    <Share2 className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                                    <p className="font-bold text-lg text-brand-dark mb-1">No active affiliates yet</p>
+                                    <p className="text-sm mb-4 max-w-sm mx-auto">Invite people to promote your products. Set a commission rate and they'll get a unique link to share.</p>
+                                    <button onClick={() => setIsInviteModalOpen(true)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-brand-dark font-bold rounded-xl transition-colors shadow-sm">Generate Invite Link</button>
+                                 </td>
+                              </tr>
+                           ) : (
+                              affiliates.map(aff => {
+                                 const product = products.find(p => p.id === aff.productId);
+                                 return (
+                                    <tr key={aff.id} className="hover:bg-gray-50/50 transition-colors group">
+                                       <td className="px-6 py-4">
+                                          <p className="font-bold text-brand-dark text-sm">Guest Affiliate</p>
+                                          <p className="text-xs text-gray-500 max-w-[150px] truncate">{aff.customLink}</p>
+                                       </td>
+                                       <td className="px-6 py-4">
+                                          <p className="text-sm font-medium text-brand-dark truncate max-w-[200px]">{product?.title || 'Unknown Product'}</p>
+                                       </td>
+                                       <td className="px-6 py-4 font-bold text-green-600 bg-green-50/50 rounded-xl inline-block mt-2">
+                                          {aff.commissionRate}%
+                                       </td>
+                                       <td className="px-6 py-4 font-medium text-brand-dark">
+                                          {aff.clicks} / {aff.conversions}
+                                       </td>
+                                       <td className="px-6 py-4 text-right">
+                                          <button
+                                             onClick={() => {
+                                                navigator.clipboard.writeText(`${window.location.origin}/store/${user.id}?ref=${aff.customLink}`);
+                                                import('react-hot-toast').then(mod => mod.default.success("Copied affiliate link!"));
+                                             }}
+                                             className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-brand-dark rounded-lg text-xs font-bold transition-colors"
+                                          >
+                                             Copy Link
+                                          </button>
+                                       </td>
+                                    </tr>
+                                 )
+                              })
+                           )}
+                        </tbody>
+                     </table>
                   </div>
                </div>
             )}
@@ -1000,6 +1139,62 @@ export const CreatorDashboard: React.FC = () => {
                </div>
             )
          }
+
+         {/* Invite Affiliate Modal */}
+         {isInviteModalOpen && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+               <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl animate-scale-in">
+                  <div className="flex justify-between items-center mb-6">
+                     <h3 className="font-display font-bold text-2xl text-brand-dark">New Affiliate Link</h3>
+                     <button onClick={() => setIsInviteModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
+                        <X className="w-5 h-5" />
+                     </button>
+                  </div>
+                  <form onSubmit={handleInviteAffiliate} className="space-y-6">
+                     <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Select Product</label>
+                        <select
+                           required
+                           value={inviteForm.productId}
+                           onChange={e => setInviteForm({ ...inviteForm, productId: e.target.value })}
+                           className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-selar-black/20 transition-all font-medium text-brand-dark"
+                        >
+                           <option value="">Choose a product to promote...</option>
+                           {sellerProducts.map(p => (
+                              <option key={p.id} value={p.id}>{p.title} (₦{p.price})</option>
+                           ))}
+                        </select>
+                     </div>
+                     <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Commission Rate (%)</label>
+                        <div className="relative">
+                           <input
+                              type="number"
+                              min="1"
+                              max="99"
+                              required
+                              value={inviteForm.commissionRate}
+                              onChange={e => setInviteForm({ ...inviteForm, commissionRate: Number(e.target.value) })}
+                              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-selar-black/20 transition-all font-bold text-brand-dark pointer-events-auto"
+                           />
+                           <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">%</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2 font-medium">How much of the sale goes to the affiliate.</p>
+                     </div>
+
+                     <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100 flex gap-3 text-sm font-medium text-blue-800">
+                        <Share2 className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                        <p>We'll generate a unique tracking link you can share with your affiliate partner.</p>
+                     </div>
+
+                     <button type="submit" className="w-full py-4 bg-selar-black text-white rounded-xl font-bold shadow-lg shadow-subtle hover:shadow-elevated transition-all flex justify-center items-center gap-2">
+                        <Plus className="w-5 h-5" />
+                        Generate Link
+                     </button>
+                  </form>
+               </div>
+            </div>
+         )}
       </div >
    );
 };
