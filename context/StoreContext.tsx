@@ -50,9 +50,9 @@ interface StoreContextType {
   toggleCheckout: () => void;
 
   // Auth actions
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  loginAsDemo: (role: UserRole) => Promise<void>;
-  register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; user?: any }>;
+  loginAsDemo: (role: UserRole) => Promise<any>;
+  register: (data: RegisterData) => Promise<{ success: boolean; error?: string; user?: any }>;
   logout: () => void;
 
   // Order actions
@@ -461,7 +461,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const toggleCheckout = useCallback(() => setIsCheckoutOpen(prev => !prev), []);
 
   // ===== SUPABASE AUTH ACTIONS =====
-  const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string; user?: any }> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
@@ -469,6 +469,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return { success: false, error: error.message };
       }
 
+      let loggedInUser;
       if (data.user) {
         const { data: profile } = await supabase
           .from('profiles')
@@ -476,20 +477,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           .eq('id', data.user.id)
           .single();
         if (profile) {
-          setUser(dbToUser(profile));
+          loggedInUser = dbToUser(profile);
+          setUser(loggedInUser);
         }
       }
 
       setIsAuthOpen(false);
       toast.success('Welcome back!');
-      return { success: true };
+      return { success: true, user: loggedInUser };
     } catch (err: any) {
       toast.error(err.message || 'Login failed');
       return { success: false, error: err.message || 'Login failed' };
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const register = useCallback(async (data: RegisterData): Promise<{ success: boolean; error?: string }> => {
+  const register = useCallback(async (data: RegisterData): Promise<{ success: boolean; error?: string; user?: any }> => {
     try {
       const { data: authData, error } = await supabase.auth.signUp({
         email: data.email,
@@ -507,6 +509,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return { success: false, error: error.message };
       }
 
+      let registeredUser;
       if (authData.user) {
         // Wait a moment for the trigger to create the profile
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -524,13 +527,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           .single();
 
         if (profile) {
-          setUser(dbToUser(profile));
+          registeredUser = dbToUser(profile);
+          setUser(registeredUser);
         }
       }
 
       setIsAuthOpen(false);
       toast.success('Account created successfully!');
-      return { success: true };
+      return { success: true, user: registeredUser };
     } catch (err: any) {
       toast.error(err.message || 'Registration failed');
       return { success: false, error: err.message || 'Registration failed' };
@@ -568,7 +572,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     }
 
-    // Fetch profile
+    let loggedInUser;
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (authUser) {
       const { data: profile } = await supabase
@@ -576,10 +580,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .select('*')
         .eq('id', authUser.id)
         .single();
-      if (profile) setUser(dbToUser(profile));
+      if (profile) {
+        loggedInUser = dbToUser(profile);
+        setUser(loggedInUser);
+      }
     }
 
     setIsAuthOpen(false);
+    return loggedInUser;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const logout = useCallback(async () => {

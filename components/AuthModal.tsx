@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { X, Mail, Lock, User, Github, Eye, EyeOff, Store, ShoppingBag, CheckCircle, Loader2 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { UserRole } from '../types';
+import { useRouter } from 'next/navigation';
 
 export const AuthModal: React.FC = () => {
-  const { isAuthOpen, toggleAuth, login, register, loginAsDemo } = useStore();
+  const { isAuthOpen, toggleAuth, login, register, loginAsDemo, isCheckoutOpen } = useStore();
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -20,6 +22,13 @@ export const AuthModal: React.FC = () => {
 
   if (!isAuthOpen) return null;
 
+  const handleRedirect = (user: any) => {
+    if (isCheckoutOpen) return;
+    if (user?.role === 'admin') router.push('/dashboard/admin');
+    else if (user?.role === 'seller') router.push('/dashboard/seller');
+    else router.push('/library');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -30,6 +39,8 @@ export const AuthModal: React.FC = () => {
         const result = await login(formData.email, formData.password);
         if (!result.success) {
           setError(result.error || 'Login failed');
+        } else if (result.user) {
+          handleRedirect(result.user);
         }
       } else {
         if (formData.password.length < 6) {
@@ -45,12 +56,23 @@ export const AuthModal: React.FC = () => {
         });
         if (!result.success) {
           setError(result.error || 'Registration failed');
+        } else if (result.user) {
+          handleRedirect(result.user);
         }
       }
     } catch (err) {
       setError('An unexpected error occurred');
     }
 
+    setIsLoading(false);
+  };
+
+  const handleDemoLogin = async (role: UserRole) => {
+    setIsLoading(true);
+    const user = await loginAsDemo(role);
+    if (user) {
+      handleRedirect(user);
+    }
     setIsLoading(false);
   };
 
