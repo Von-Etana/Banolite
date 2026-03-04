@@ -7,6 +7,7 @@ import { Footer } from "../components/Footer";
 import { CartDrawer } from "../components/CartDrawer";
 import { AuthModal } from "../components/AuthModal";
 import { CheckoutModal } from "../components/CheckoutModal";
+import { Suspense } from "react";
 
 import { Toaster } from 'react-hot-toast';
 
@@ -58,14 +59,18 @@ export default function RootLayout({
                             },
                         }}
                     />
-                    <Navbar />
+                    <Suspense fallback={null}>
+                        <Navbar />
+                    </Suspense>
                     <main>
                         {children}
                     </main>
                     <Footer />
                     <CartDrawer />
                     <AuthModal />
-                    <CheckoutModal />
+                    <Suspense fallback={null}>
+                        <CheckoutModal />
+                    </Suspense>
                 </Providers>
             </body>
         </html>
