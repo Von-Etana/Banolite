@@ -73,7 +73,7 @@ export const Hero: React.FC = () => {
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.3, type: "spring", bounce: 0.4 }}
-            className="relative lg:ml-auto w-full max-w-lg xl:max-w-xl mx-auto md:mx-0"
+            className="relative lg:ml-auto w-full max-w-2xl xl:max-w-3xl mx-auto md:mx-0"
           >
             {/* Main Image Container */}
             <div className="relative rounded-[32px] overflow-hidden shadow-elevated border-8 border-white bg-white z-10 flex items-center justify-center">
