@@ -1,5 +1,6 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Product, CartItem, User, Order, Review, Notification, StoredUser, UserRole, SiteContent, Booking, Ticket, AnalyticsSummary, Affiliate } from '../types';
 import { PRODUCTS } from '../constants';
 import { createClient } from '../lib/supabase/client';
@@ -179,6 +180,7 @@ const getInitialProducts = (): Product[] => {
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const supabase = createClient();
+  const router = useRouter();
 
   const [cart, setCart] = useState<CartItem[]>(() =>
     getStorageItem<CartItem[]>(STORAGE_KEYS.CART, [])
@@ -591,14 +593,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const logout = useCallback(async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setOrders([]);
-    setNotifications([]);
-    setBookings([]);
-    setTickets([]);
-    toast.success('Logged out successfully');
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setOrders([]);
+      setNotifications([]);
+      setBookings([]);
+      setTickets([]);
+      toast.success('Logged out successfully');
+      router.push('/');
+      router.refresh();
+    } catch (err) {
+      console.error('Logout error:', err);
+      // Fallback: clear local state anyway
+      setUser(null);
+      setOrders([]);
+      router.push('/');
+    }
+  }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ===== ORDER ACTIONS (calls API route) =====
   const createPendingOrder = useCallback(async (paymentMethod: string, email: string, additionalInfo?: { bookingDate?: string; attendeeName?: string; name?: string; phone?: string; state?: string; affiliateId?: string }): Promise<Order> => {

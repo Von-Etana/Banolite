@@ -9,7 +9,7 @@ import {
    BookOpen, Image as ImageIcon, BarChart3, User as UserIcon,
    X, CheckCircle, LayoutGrid, Wallet, History,
    ChevronRight, FileText, Video, Ticket, Briefcase,
-   ShoppingCart, Sparkles, TrendingDown, Save, Upload, Eye, Share2
+   ShoppingCart, Sparkles, TrendingDown, Save, Upload, Eye, Share2, Shield
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Product, Payout, ProductType, Order } from '../types';
@@ -30,7 +30,8 @@ export const CreatorDashboard: React.FC = () => {
       updateUserProfile,
       affiliates,
       getAffiliates,
-      createAffiliate
+      createAffiliate,
+      isLoading // Added loading state from context
    } = useStore();
    const router = useRouter();
    const [activeTab, setActiveTab] = useState<Tab>('overview');
@@ -78,16 +79,33 @@ export const CreatorDashboard: React.FC = () => {
       eventLocation: ''
    });
 
+   // Handle loading state
+   if (isLoading) {
+      return (
+         <div className="min-h-screen pt-32 flex flex-col items-center justify-center container mx-auto px-6 text-center">
+            <div className="w-12 h-12 border-4 border-brand-purple border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-500 font-medium">Verifying account credentials...</p>
+         </div>
+      );
+   }
+
    // Check for seller role
    if (!user || (user.role !== 'seller' && user.role !== 'admin')) {
       return (
          <div className="min-h-screen pt-32 flex flex-col items-center justify-center container mx-auto px-6 text-center">
-            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-6">
-               <BookOpen className="w-10 h-10" />
+            <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 mb-6 border border-amber-100 shadow-sm">
+               <Shield className="w-10 h-10" />
             </div>
-            <h1 className="font-display font-bold text-3xl text-brand-dark mb-4">Access Restricted</h1>
-            <p className="text-gray-500 max-w-md mb-8">This dashboard is only available to registered sellers. Please log in with a seller account.</p>
-            <button onClick={() => router.push('/')} className="px-6 py-3 bg-selar-black text-white rounded-xl font-bold">Return Home</button>
+            <h1 className="font-display font-bold text-3xl text-brand-dark mb-4">Seller Dashboard</h1>
+            <p className="text-gray-500 max-w-md mb-8">
+               {user
+                  ? "Your account doesn't have seller privileges yet. Please contact support or upgrade your account to access the creator dashboard."
+                  : "Please sign in to your seller account to access your dashboard and manage your products."}
+            </p>
+            <div className="flex gap-4">
+               <button onClick={() => router.push('/')} className="px-6 py-3 bg-white border border-selar-border text-brand-dark rounded-xl font-bold hover:bg-gray-50 transition-all">Return Home</button>
+               {!user && <button onClick={() => { /* Store Context should handle opening auth */ }} className="px-6 py-3 bg-brand-dark text-white rounded-xl font-bold hover:bg-black transition-all">Sign In</button>}
+            </div>
          </div>
       );
    }
