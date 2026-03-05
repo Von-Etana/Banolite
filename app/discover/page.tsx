@@ -9,6 +9,7 @@ import { Coach, Event } from '../../types';
 import { BookingFlow } from '../../views/BookingFlow';
 import { EventTicketing } from '../../views/EventTicketing';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 const stagger = {
     hidden: { opacity: 0 },
@@ -55,9 +56,9 @@ export default function DiscoverPage() {
                             </h2>
                             <p className="text-brand-muted text-sm">Book 1-on-1 sessions with industry leaders.</p>
                         </div>
-                        <button className="text-brand-dark font-semibold text-sm flex items-center gap-1 hover:gap-2 transition-all mt-4 md:mt-0">
+                        <Link href="/coaching" className="text-brand-dark font-semibold text-sm flex items-center gap-1 hover:gap-2 transition-all mt-4 md:mt-0">
                             View all <ArrowRight className="w-4 h-4" />
-                        </button>
+                        </Link>
                     </div>
 
                     <motion.div
@@ -115,9 +116,9 @@ export default function DiscoverPage() {
                             </h2>
                             <p className="text-brand-muted text-sm">Join webinars, workshops, and live sessions.</p>
                         </div>
-                        <button className="text-brand-dark font-semibold text-sm flex items-center gap-1 hover:gap-2 transition-all mt-4 md:mt-0">
+                        <Link href="/events" className="text-brand-dark font-semibold text-sm flex items-center gap-1 hover:gap-2 transition-all mt-4 md:mt-0">
                             View all <ArrowRight className="w-4 h-4" />
-                        </button>
+                        </Link>
                     </div>
 
                     <motion.div
