@@ -78,7 +78,7 @@ export const Hero: React.FC = () => {
             {/* Main Image Container */}
             <div className="relative rounded-[32px] overflow-hidden shadow-elevated border-8 border-white bg-white z-10 flex items-center justify-center">
               <img
-                src="/hero.png"
+                src="/Black-Influencers-1.jpg"
                 alt="Creator Platform"
                 className="w-full h-auto object-contain"
                 onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200' }}
