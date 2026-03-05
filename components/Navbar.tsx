@@ -93,7 +93,7 @@ export const Navbar: React.FC = () => {
             )}
 
             {user?.role === 'seller' && (
-              <Link href="/dashboard" className="text-brand-dark font-semibold text-sm flex items-center gap-1.5 px-4 py-2 rounded-lg hover:bg-brand-light transition-colors">
+              <Link href="/dashboard/seller" className="text-brand-dark font-semibold text-sm flex items-center gap-1.5 px-4 py-2 rounded-lg hover:bg-brand-light transition-colors">
                 <LayoutDashboard className="w-3.5 h-3.5" />
                 Dashboard
               </Link>
@@ -197,7 +197,7 @@ export const Navbar: React.FC = () => {
                 </Link>
               )}
               {user?.role === 'seller' && (
-                <Link href="/dashboard" className="px-4 py-3 rounded-xl text-sm font-medium text-brand-dark hover:bg-brand-light flex items-center gap-2">
+                <Link href="/dashboard/seller" className="px-4 py-3 rounded-xl text-sm font-medium text-brand-dark hover:bg-brand-light flex items-center gap-2">
                   <LayoutDashboard className="w-4 h-4" /> Dashboard
                 </Link>
               )}

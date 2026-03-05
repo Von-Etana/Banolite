@@ -1,9 +1,21 @@
 'use client';
 import React from 'react';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useStore } from '../context/StoreContext';
 
 export const CTASection: React.FC = () => {
+  const { user, toggleAuth } = useStore();
+  const router = useRouter();
+
+  const handleAction = () => {
+    if (!user || user.role !== 'seller') {
+      toggleAuth();
+    } else {
+      router.push('/dashboard/seller');
+    }
+  };
+
   return (
     <section className="bg-brand-primary">
       <motion.div
@@ -18,12 +30,12 @@ export const CTASection: React.FC = () => {
         </h2>
 
         <div className="flex justify-center">
-          <Link
-            href="/dashboard"
+          <button
+            onClick={handleAction}
             className="bg-white px-10 py-4 rounded-full flex items-center gap-2 font-bold text-black hover:shadow-elevated hover:-translate-y-1 transition-all text-lg"
           >
             Get Started <span className="text-xl leading-none">&rarr;</span>
-          </Link>
+          </button>
         </div>
       </motion.div>
     </section>

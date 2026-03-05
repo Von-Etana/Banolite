@@ -58,7 +58,7 @@ export const Hero: React.FC = () => {
                   <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </button>
               ) : (
-                <Link href="/dashboard" className="btn-primary text-lg w-full sm:w-auto">
+                <Link href="/dashboard/seller" className="btn-primary text-lg w-full sm:w-auto">
                   Go to Dashboard
                 </Link>
               )}
