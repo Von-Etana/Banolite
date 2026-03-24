@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '../../../../lib/supabase/server';
+import { isValidUUID, isValidRole, sanitizeString } from '../../../../lib/validateInput';
 
 // GET /api/admin/users
 export async function GET(req: NextRequest) {
@@ -28,8 +29,6 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Since we are using the service role in createServerClient, we can access auth.users 
-    // OR we can just fetch all profiles which is safer and easier.
     const { data: profiles, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
@@ -39,7 +38,6 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: fetchError.message }, { status: 500 });
     }
 
-    // Map DB profiles to User object
     const users = profiles.map(p => ({
         id: p.id,
         name: p.name || 'User',
@@ -49,7 +47,7 @@ export async function GET(req: NextRequest) {
         walletBalance: p.wallet_balance || 0,
         createdAt: new Date(p.created_at),
         storeName: p.store_name,
-        purchasedProductIds: [], // Admins don't need this for the table view
+        purchasedProductIds: [],
     }));
 
     return NextResponse.json(users);
@@ -80,13 +78,18 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const { userId, role } = body;
 
-    if (!userId || !role) {
-        return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+    // Input validation
+    if (!isValidUUID(userId)) {
+        return NextResponse.json({ error: 'Invalid user ID format' }, { status: 400 });
+    }
+
+    if (!isValidRole(role)) {
+        return NextResponse.json({ error: 'Invalid role. Must be one of: buyer, seller, admin' }, { status: 400 });
     }
 
     const { error: updateError } = await supabase
         .from('profiles')
-        .update({ role })
+        .update({ role: sanitizeString(role) })
         .eq('id', userId);
 
     if (updateError) {
@@ -95,3 +98,4 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ success: true, message: 'User updated' });
 }
+

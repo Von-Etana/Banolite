@@ -87,9 +87,9 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center text-[13px] text-brand-muted pt-8 border-t border-[#E5E5E5] font-medium">
           <p>© {new Date().getFullYear()} Banolite. All rights reserved.</p>
           <div className="flex gap-8 mt-4 md:mt-0">
-            <a href="#" className="hover:text-brand-dark transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-brand-dark transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-brand-dark transition-colors">Data Processing Addendum</a>
+            <Link href="/privacy" className="hover:text-brand-dark transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-brand-dark transition-colors">Terms and Conditions</Link>
+            <Link href="#" className="hover:text-brand-dark transition-colors">Data Processing Addendum</Link>
           </div>
         </div>
       </div>

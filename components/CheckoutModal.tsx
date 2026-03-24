@@ -333,7 +333,7 @@ export const CheckoutModal: React.FC = () => {
                         name: formData.name,
                         phone: formData.phone,
                         state: formData.state,
-                        affiliateId: searchParams.get('ref') || undefined
+                        affiliateId: searchParams.get('ref') || searchParams.get('aff') || (typeof window !== 'undefined' ? localStorage.getItem('banolite_affiliate') : null) || undefined
                       });
 
                       // 2. Set the ID as the reference for Paystack

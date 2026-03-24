@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '../../../lib/supabase/server';
-import { sendOrderReceipt, sendSellerSaleNotification } from '../../../lib/resend';
+import { validateOrderPayload } from '../../../lib/validateInput';
 
 // POST /api/orders — Create an order after successful payment
 export async function POST(req: NextRequest) {
@@ -20,11 +20,13 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { items, total, paymentMethod, paymentRef, email, additionalInfo, affiliateId } = body;
+        const validation = validateOrderPayload(body);
 
-        if (!items || !items.length || !total) {
-            return NextResponse.json({ error: 'Missing order data' }, { status: 400 });
+        if (!validation.valid || !validation.data) {
+            return NextResponse.json({ error: validation.error || 'Invalid order data' }, { status: 400 });
         }
+
+        const { items, total, paymentMethod, paymentRef, email, additionalInfo, affiliateId } = validation.data;
 
         // 1. Resolve Affiliate ID if provided
         let resolvedAffiliateId = null;

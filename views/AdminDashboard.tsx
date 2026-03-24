@@ -8,9 +8,12 @@ import {
     Search, Filter, MoreHorizontal, Shield, Lock, Trash2, Edit2, Save,
     LayoutTemplate
 } from 'lucide-react';
-import { UserRole, User } from '../types';
+import { UserRole, User, Payout } from '../types';
+import { createClient } from '../lib/supabase/client';
 
-type Tab = 'overview' | 'cms' | 'users' | 'products' | 'transactions' | 'settings';
+const supabase = createClient();
+
+type Tab = 'overview' | 'cms' | 'users' | 'products' | 'transactions' | 'payouts' | 'settings';
 
 export const AdminDashboard: React.FC = () => {
     const { user, products, orders, getAllUsers, updateUserRole, deleteUser, deleteProduct, siteContent, updateSiteContent } = useStore();
@@ -19,13 +22,67 @@ export const AdminDashboard: React.FC = () => {
 
     // Admin state
     const [allUsers, setAllUsers] = useState<User[]>([]);
+    const [adminPayouts, setAdminPayouts] = useState<Payout[]>([]);
     const [editingUser, setEditingUser] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [adminStats, setAdminStats] = useState({ totalRevenue: 0, totalOrders: 0 });
 
     useEffect(() => {
         if (user && user.role === 'admin') {
             getAllUsers().then(users => setAllUsers(users));
+            fetchAdminPayouts();
+            fetchAdminStats();
         }
     }, [user, getAllUsers]);
+
+    const fetchAdminStats = async () => {
+        try {
+            // Admins should have RLS access to all orders
+            const { data, error } = await supabase.from('orders').select('total');
+            if (data && !error) {
+                const revenue = data.reduce((sum, o) => sum + Number(o.total || 0), 0);
+                setAdminStats({ totalRevenue: revenue, totalOrders: data.length });
+            }
+        } catch (err) {
+            console.error('Failed to fetch admin stats', err);
+        }
+    };
+
+    const fetchAdminPayouts = async () => {
+        try {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) return;
+            const res = await fetch('/api/admin/payouts', { headers: { Authorization: `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) setAdminPayouts(data.payouts || []);
+        } catch (err) {
+            console.error('Failed to fetch payouts', err);
+        }
+    };
+
+    const handlePayoutAction = async (id: string, action: 'approve' | 'reject') => {
+        if (!confirm(`Are you sure you want to ${action} this payout?`)) return;
+        setIsProcessing(true);
+        try {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            const res = await fetch('/api/admin/payouts', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ id, action })
+            });
+            const data = await res.json();
+            if (data.success) {
+                import('react-hot-toast').then(t => t.default.success(`Payout ${action}d successfully`));
+                fetchAdminPayouts();
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (err: any) {
+            import('react-hot-toast').then(t => t.default.error(err.message || 'Action failed'));
+        } finally {
+            setIsProcessing(false);
+        }
+    };
     const [tempRole, setTempRole] = useState<UserRole>('buyer');
     const [cmsForm, setCmsForm] = useState(siteContent);
 
@@ -59,11 +116,11 @@ export const AdminDashboard: React.FC = () => {
     }
 
     // Calculate platform stats
-    const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
-    const calculatedPlatformFee = totalRevenue * (siteContent.platformFeePercentage / 100); // Dynamic platform fee
+    const totalRevenue = adminStats.totalRevenue;
+    const calculatedPlatformFee = totalRevenue * (siteContent.platformFeePercentage / 100);
     const totalUsers = allUsers.length;
     const totalProducts = products.length;
-    const totalOrders = orders.length;
+    const totalOrders = adminStats.totalOrders;
 
     const tabs = [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -71,6 +128,7 @@ export const AdminDashboard: React.FC = () => {
         { id: 'users', label: 'Users', icon: Users },
         { id: 'products', label: 'Products', icon: Package },
         { id: 'transactions', label: 'Transactions', icon: DollarSign },
+        { id: 'payouts', label: 'Payouts', icon: TrendingUp },
         { id: 'settings', label: 'Settings', icon: Settings },
     ];
 
@@ -550,6 +608,79 @@ export const AdminDashboard: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'payouts' && (
+                    <div className="animate-fade-in space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h1 className="font-display font-bold text-3xl text-brand-dark">Payout Requests</h1>
+                        </div>
+                        <div className="bg-white rounded-3xl shadow-elevated border border-gray-50 overflow-hidden">
+                            <table className="w-full">
+                                <thead className="bg-gray-50 border-b border-gray-100">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Creator</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Amount</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Bank Details</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Date</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status/Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {adminPayouts.map((p: any) => (
+                                        <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <p className="font-bold text-brand-dark text-sm">{p.profiles?.name || 'Unknown'}</p>
+                                                <p className="text-xs text-gray-500">{p.profiles?.email}</p>
+                                            </td>
+                                            <td className="px-6 py-4 font-bold text-brand-dark">₦{Number(p.amount).toFixed(2)}</td>
+                                            <td className="px-6 py-4">
+                                                {p.bank_details ? (
+                                                    <div className="text-xs text-gray-600">
+                                                        <p className="font-medium">{p.bank_details.bankName}</p>
+                                                        <p>{p.bank_details.accountNumber}</p>
+                                                        <p className="text-gray-400">{p.bank_details.accountName}</p>
+                                                    </div>
+                                                ) : <span className="text-xs text-gray-400">N/A</span>}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-500">{new Date(p.created_at).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4">
+                                                {p.status === 'pending' ? (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handlePayoutAction(p.id, 'approve')}
+                                                            disabled={isProcessing}
+                                                            className="px-3 py-1.5 bg-green-50 text-green-600 text-xs font-bold rounded-lg hover:bg-green-100"
+                                                        >
+                                                            Approve
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handlePayoutAction(p.id, 'reject')}
+                                                            disabled={isProcessing}
+                                                            className="px-3 py-1.5 bg-red-50 text-red-600 text-xs font-bold rounded-lg hover:bg-red-100"
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${p.status === 'approved' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                                                        {p.status}
+                                                    </span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {adminPayouts.length === 0 && (
+                                        <tr>
+                                            <td colSpan={5} className="px-6 py-12 text-center text-gray-500 font-medium bg-gray-50/50">
+                                                No payout requests found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 )}

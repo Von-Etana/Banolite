@@ -150,6 +150,7 @@ function dbToUser(profile: any): StoredUser {
       twitter: profile.social_twitter,
       website: profile.social_website,
     },
+    subscriptionPlan: profile.subscription_plan || 'starter',
   };
 }
 
@@ -206,6 +207,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
+
+  // ===== AFFILIATE TRACKING =====
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const affCode = urlParams.get('aff');
+      if (affCode) {
+        localStorage.setItem('banolite_affiliate', affCode);
+      }
+    }
+  }, []);
 
   // ===== SUPABASE AUTH LISTENER =====
   useEffect(() => {
@@ -798,6 +810,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (data.location !== undefined) dbUpdate.location = data.location;
     if (data.storeName !== undefined) dbUpdate.store_name = data.storeName;
     if (data.storeDescription !== undefined) dbUpdate.store_description = data.storeDescription;
+    if (data.subscriptionPlan !== undefined) dbUpdate.subscription_plan = data.subscriptionPlan;
     if (data.storeBanner !== undefined) dbUpdate.store_banner = data.storeBanner;
     if (data.socialLinks?.twitter !== undefined) dbUpdate.social_twitter = data.socialLinks.twitter;
     if (data.socialLinks?.website !== undefined) dbUpdate.social_website = data.socialLinks.website;

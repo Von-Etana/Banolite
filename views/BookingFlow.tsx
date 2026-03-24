@@ -81,18 +81,18 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ coach, onClose }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60"
             >
                 <motion.div
                     initial={{ scale: 0.95, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                    className="bg-white rounded-3xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                    className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-100"
                 >
                     {/* Header */}
-                    <div className="p-6 border-b border-selar-border flex justify-between items-center bg-brand-light">
-                        <h2 className="text-xl font-display font-semibold text-brand-dark">Book a Session</h2>
-                        <button onClick={onClose} className="p-2 hover:bg-black/5 rounded-full transition-colors text-brand-muted hover:text-brand-dark">
+                    <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
+                        <h2 className="text-xl font-display font-bold text-gray-900">Book a Session</h2>
+                        <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
@@ -126,18 +126,18 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ coach, onClose }) => {
                                         <h4 className="font-medium flex items-center gap-2 mb-3 text-brand-dark">
                                             <CalendarIcon className="w-4 h-4 text-brand-muted" /> Select Date
                                         </h4>
-                                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                        <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
                                             {availableDates.map(date => {
                                                 const isSelected = selectedDate?.toDateString() === date.toDateString();
                                                 return (
                                                     <button
                                                         key={date.toISOString()}
                                                         onClick={() => setSelectedDate(date)}
-                                                        className={`flex flex-col items-center flex-shrink-0 p-3 rounded-xl border transition-all ${isSelected ? 'border-brand-purple bg-brand-purple/5' : 'border-selar-border bg-white hover:border-brand-purple/50'
+                                                        className={`flex flex-col items-center justify-center flex-shrink-0 w-16 p-3 rounded-2xl border transition-all ${isSelected ? 'border-brand-primary bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 text-gray-700'
                                                             }`}
                                                     >
-                                                        <span className="text-xs text-brand-muted font-medium uppercase mb-1">{format(date, 'EEE')}</span>
-                                                        <span className={`text-lg font-bold ${isSelected ? 'text-brand-purple' : 'text-brand-dark'}`}>
+                                                        <span className={`text-xs font-semibold uppercase mb-1 ${isSelected ? 'text-white/80' : 'text-gray-400'}`}>{format(date, 'EEE')}</span>
+                                                        <span className={`text-lg font-bold ${isSelected ? 'text-white' : 'text-gray-900'}`}>
                                                             {format(date, 'd')}
                                                         </span>
                                                     </button>
@@ -158,7 +158,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ coach, onClose }) => {
                                                         <button
                                                             key={time}
                                                             onClick={() => setSelectedTime(time)}
-                                                            className={`p-2 rounded-lg text-sm font-medium border transition-colors ${isSelected ? 'bg-brand-purple text-white border-brand-purple' : 'border-selar-border text-brand-dark hover:border-brand-purple hover:text-brand-purple bg-white'
+                                                            className={`p-3 rounded-xl text-sm font-semibold border transition-all ${isSelected ? 'bg-brand-primary text-white border-brand-primary shadow-md shadow-brand-primary/20' : 'border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 bg-white'
                                                                 }`}
                                                         >
                                                             {time}
@@ -174,15 +174,15 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ coach, onClose }) => {
                     </div>
 
                     {!isSuccess && (
-                        <div className="p-6 border-t border-selar-border bg-brand-light flex justify-between items-center">
+                        <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between items-center rounded-b-3xl">
                             <div className="text-sm">
-                                <p className="text-brand-muted">Total Due</p>
-                                <p className="text-xl font-bold text-brand-dark">₦{coach.hourlyRate.toFixed(2)}</p>
+                                <p className="text-gray-500 font-medium">Total Due</p>
+                                <p className="text-2xl font-bold text-gray-900">₦{coach.hourlyRate.toFixed(2)}</p>
                             </div>
                             <button
                                 onClick={handleBook}
                                 disabled={!selectedDate || !selectedTime || isProcessing}
-                                className="px-6 py-3 bg-brand-dark text-white rounded-xl font-semibold hover:bg-black transition-colors disabled:opacity-50 flex items-center gap-2"
+                                className="px-8 py-3.5 bg-brand-dark text-white rounded-2xl font-bold hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-black/10"
                             >
                                 {isProcessing ? 'Processing...' : 'Confirm Booking'}
                             </button>

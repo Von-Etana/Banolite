@@ -62,22 +62,22 @@ export const EventTicketing: React.FC<EventTicketingProps> = ({ event, onClose }
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60"
             >
                 <motion.div
                     initial={{ scale: 0.95, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                    className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col"
+                    className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col border border-gray-100"
                 >
                     {/* Header Image */}
-                    <div className="relative h-48 bg-brand-dark">
-                        <img src={event.image} alt={event.title} className="w-full h-full object-cover opacity-60" />
-                        <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-black/20 backdrop-blur hover:bg-black/40 rounded-full transition-colors text-white">
+                    <div className="relative h-56 bg-gray-900">
+                        <img src={event.image} alt={event.title} className="w-full h-full object-cover opacity-70" />
+                        <button onClick={onClose} className="absolute top-4 right-4 p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-white backdrop-blur-md border border-white/20">
                             <X className="w-5 h-5" />
                         </button>
-                        <div className="absolute bottom-4 left-6">
-                            <span className="px-3 py-1 bg-brand-purple text-white text-xs font-bold uppercase tracking-wider rounded-lg mb-2 inline-block">
+                        <div className="absolute bottom-5 left-6 shadow-xl">
+                            <span className="px-3.5 py-1.5 bg-brand-primary text-white text-xs font-bold uppercase tracking-wider rounded-lg mb-2 inline-block shadow-lg shadow-brand-primary/30">
                                 {event.type}
                             </span>
                         </div>
@@ -96,37 +96,37 @@ export const EventTicketing: React.FC<EventTicketingProps> = ({ event, onClose }
                                 <p className="text-brand-muted mb-6 text-sm">{event.description}</p>
 
                                 <div className="space-y-4 mb-8">
-                                    <div className="flex items-center gap-3 text-brand-dark font-medium">
-                                        <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center">
-                                            <Calendar className="w-5 h-5 text-brand-purple" />
+                                    <div className="flex items-center gap-4 text-gray-900 font-medium">
+                                        <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center shadow-sm">
+                                            <Calendar className="w-5 h-5 text-brand-primary" />
                                         </div>
                                         <div>
-                                            <p className="text-sm">Date & Time</p>
-                                            <p className="text-sm text-brand-muted">{format(event.date, 'EEEE, MMMM do, yyyy')}</p>
+                                            <p className="text-sm font-semibold">Date & Time</p>
+                                            <p className="text-sm text-gray-500">{format(event.date, 'EEEE, MMMM do, yyyy')}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 text-brand-dark font-medium">
-                                        <div className="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center">
-                                            <MapPin className="w-5 h-5 text-brand-purple" />
+                                    <div className="flex items-center gap-4 text-gray-900 font-medium">
+                                        <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center shadow-sm">
+                                            <MapPin className="w-5 h-5 text-brand-primary" />
                                         </div>
                                         <div>
-                                            <p className="text-sm">Location</p>
-                                            <p className="text-sm text-brand-muted">{event.type}</p>
+                                            <p className="text-sm font-semibold">Location</p>
+                                            <p className="text-sm text-gray-500">{event.type}</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="pt-6 border-t border-selar-border flex justify-between items-center">
+                                <div className="pt-6 mt-6 border-t border-gray-100 flex justify-between items-center bg-white">
                                     <div>
-                                        <p className="text-brand-muted text-sm">Ticket Price</p>
-                                        <p className="text-3xl font-bold text-brand-dark">
+                                        <p className="text-gray-500 text-sm font-medium">Ticket Price</p>
+                                        <p className="text-3xl font-bold text-gray-900">
                                             {event.price === 0 ? 'Free' : `₦${event.price.toFixed(2)}`}
                                         </p>
                                     </div>
                                     <button
                                         onClick={handlePurchase}
                                         disabled={isProcessing}
-                                        className="px-8 py-3 bg-brand-dark text-white rounded-xl font-bold hover:bg-black transition-colors disabled:opacity-50 flex items-center gap-2 shadow-elevated"
+                                        className="px-8 py-3.5 bg-brand-dark text-white rounded-2xl font-bold hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-black/10"
                                     >
                                         <TicketIcon className="w-5 h-5" />
                                         {isProcessing ? 'Processing...' : 'Get Ticket'}

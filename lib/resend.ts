@@ -42,11 +42,11 @@ export async function sendOrderReceipt(data: OrderEmailData) {
     let additionalInfoHtml = '';
     if (data.additionalInfo && Object.keys(data.additionalInfo).length > 0) {
         additionalInfoHtml = `
-            <div style="background: #fff5f2; border: 1px solid #ffd4cc; border-radius: 12px; padding: 20px; margin: 24px 0;">
-                <h3 style="margin: 0 0 16px 0; font-size: 14px; text-transform: uppercase; color: #ff3e14; letter-spacing: 0.05em;">Access Details</h3>
-                ${data.additionalInfo.bookingDate ? `<p style="margin: 0 0 8px 0; font-size: 14px; color: #1a1a1a;"><strong>Scheduled For:</strong> ${new Date(data.additionalInfo.bookingDate).toLocaleString()}</p>` : ''}
-                ${data.additionalInfo.meetLink ? `<p style="margin: 0 0 8px 0; font-size: 14px; color: #1a1a1a;"><strong>Meeting Link:</strong> <a href="${data.additionalInfo.meetLink}" style="color: #ff3e14; text-decoration: none; font-weight: bold;">Join Session</a></p>` : ''}
-                ${data.additionalInfo.qrCode ? `<p style="margin: 0 0 8px 0; font-size: 14px; color: #1a1a1a;"><strong>Ticket Code:</strong> <span style="background: white; border: 1px dashed #ccc; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-weight: bold;">${data.additionalInfo.qrCode}</span></p>` : ''}
+            <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin: 24px 0;">
+                <h3 style="margin: 0 0 16px 0; font-size: 14px; text-transform: uppercase; color: #111827; letter-spacing: 0.05em; font-weight: 800;">Access Details</h3>
+                ${data.additionalInfo.bookingDate ? `<p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;"><strong>Scheduled For:</strong> ${new Date(data.additionalInfo.bookingDate).toLocaleString()}</p>` : ''}
+                ${data.additionalInfo.meetLink ? `<p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;"><strong>Meeting Link:</strong> <a href="${data.additionalInfo.meetLink}" style="color: #111827; text-decoration: underline; font-weight: bold;">Join Session</a></p>` : ''}
+                ${data.additionalInfo.qrCode ? `<p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;"><strong>Ticket Code:</strong> <span style="background: white; border: 1px solid #d1d5db; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-weight: bold; color: #111827;">${data.additionalInfo.qrCode}</span></p>` : ''}
             </div>
         `;
     }

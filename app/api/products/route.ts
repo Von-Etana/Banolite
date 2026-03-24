@@ -44,9 +44,25 @@ export async function POST(req: NextRequest) {
     }
 
     // Check user is a seller
-    const { data: profile } = await supabase.from('profiles').select('role, name').eq('id', user.id).single();
+    const { data: profile } = await supabase.from('profiles').select('role, name, subscription_plan').eq('id', user.id).single();
     if (!profile || profile.role === 'buyer') {
         return NextResponse.json({ error: 'Only sellers can create products' }, { status: 403 });
+    }
+
+    // Enforce Starter plan limits (max 5 products)
+    const plan = profile.subscription_plan || 'starter';
+    if (plan === 'starter') {
+        const { count, error: countError } = await supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true })
+            .eq('creator_id', user.id);
+            
+        if (!countError && count !== null && count >= 5) {
+            return NextResponse.json(
+                { error: 'Starter plan allows a maximum of 5 products. Please upgrade your plan to upload more.' }, 
+                { status: 403 }
+            );
+        }
     }
 
     const body = await req.json();

@@ -7,6 +7,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TYPE user_role AS ENUM ('buyer', 'seller', 'admin');
 CREATE TYPE product_type AS ENUM ('EBOOK', 'COURSE', 'TICKET', 'SERVICE', 'SUBSCRIPTION', 'COACHING');
 CREATE TYPE order_status AS ENUM ('pending', 'completed', 'refunded', 'failed');
+CREATE TYPE subscription_tier AS ENUM ('starter', 'pro', 'business');
 
 -- Users table (Extends Supabase Auth users)
 CREATE TABLE public.users (
@@ -21,6 +22,7 @@ CREATE TABLE public.users (
   store_name TEXT,
   store_description TEXT,
   social_links JSONB,
+  subscription_plan subscription_tier DEFAULT 'starter' NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
@@ -82,6 +84,16 @@ CREATE TABLE public.user_purchases (
   PRIMARY KEY (user_id, product_id)
 );
 
+-- Platform Revenue table (for Admin to track fee deductions)
+CREATE TABLE public.platform_revenue (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  order_id UUID REFERENCES public.orders(id) ON DELETE SET NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  currency TEXT DEFAULT 'NGN' NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
 -- Row Level Security (RLS) configuration
 
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
@@ -135,5 +147,12 @@ CREATE POLICY "Site content is viewable by everyone"
   ON public.site_content FOR SELECT USING (true);
 CREATE POLICY "Only admins can update site content" 
   ON public.site_content FOR ALL USING (
+  EXISTS(SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+);
+
+-- Platform Revenue Policy: Only admins can view
+ALTER TABLE public.platform_revenue ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Only admins can view platform revenue" 
+  ON public.platform_revenue FOR SELECT USING (
   EXISTS(SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
 );

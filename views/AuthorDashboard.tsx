@@ -14,6 +14,11 @@ import {
 import { useRouter } from 'next/navigation';
 import { Product, Payout, ProductType, Order } from '../types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import toast from 'react-hot-toast';
+import { createClient } from '../lib/supabase/client';
+
+const supabase = createClient();
+
 type Tab = 'overview' | 'products' | 'customers' | 'affiliates' | 'wallet' | 'settings';
 
 export const CreatorDashboard: React.FC = () => {
@@ -43,6 +48,25 @@ export const CreatorDashboard: React.FC = () => {
    const [isPreviewMode, setIsPreviewMode] = useState(false);
    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
    const [inviteForm, setInviteForm] = useState({ productId: '', commissionRate: 20 });
+   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+   const [withdrawForm, setWithdrawForm] = useState({ amount: '', bankName: '', bankCode: '', accountName: '', accountNumber: '' });
+   const [isSubmitting, setIsSubmitting] = useState(false);
+   const [banks, setBanks] = useState<{name: string, code: string}[]>([]);
+
+   useEffect(() => {
+      const fetchBanks = async () => {
+         try {
+            const res = await fetch('/api/banks');
+            const data = await res.json();
+            if (data.success) {
+               setBanks(data.data || []);
+            }
+         } catch (err) {
+            console.error("Failed to load banks", err);
+         }
+      };
+      fetchBanks();
+   }, []);
 
    // Profile Edit State (now Settings)
    const [profileForm, setProfileForm] = useState({
@@ -58,11 +82,41 @@ export const CreatorDashboard: React.FC = () => {
       socialWebsite: user?.socialLinks?.website || '',
    });
 
-   // Mock Payout History
-   const payoutHistory: Payout[] = [
-      { id: 'p1', sellerId: user?.id || '', amount: 500, date: new Date('2024-02-28'), status: 'completed' },
-      { id: 'p2', sellerId: user?.id || '', amount: 1200, date: new Date('2024-03-15'), status: 'pending' },
-   ];
+   // Real Payout History
+   const [payoutHistory, setPayoutHistory] = useState<Payout[]>([]);
+   const [isFetchingPayouts, setIsFetchingPayouts] = useState(false);
+
+   useEffect(() => {
+      const fetchPayouts = async () => {
+         if (!user?.id) return;
+         setIsFetchingPayouts(true);
+         try {
+            const { data, error } = await supabase
+               .from('payouts')
+               .select('*')
+               .eq('user_id', user.id)
+               .order('created_at', { ascending: false });
+
+            if (data && !error) {
+               setPayoutHistory(data.map(p => ({
+                  id: p.id,
+                  userId: p.user_id,
+                  amount: p.amount,
+                  status: p.status,
+                  createdAt: new Date(p.created_at)
+               })));
+            }
+         } catch (err) {
+            console.error('Failed to fetch payouts', err);
+         } finally {
+            setIsFetchingPayouts(false);
+         }
+      };
+
+      if (activeTab === 'wallet') {
+         fetchPayouts();
+      }
+   }, [user?.id, activeTab]);
 
    // Form States
    const [productForm, setProductForm] = useState<Partial<Omit<Product, 'eventDate'>> & { eventDate?: string; eventLocation?: string }>({
@@ -122,6 +176,13 @@ export const CreatorDashboard: React.FC = () => {
    }, [activeTab, getAffiliates]);
 
    const handleOpenAdd = () => {
+      const productLimit = user?.subscriptionPlan === 'starter' ? 5 : user?.subscriptionPlan === 'pro' ? 50 : Infinity;
+      if (sellerProducts.length >= productLimit) {
+         import('react-hot-toast').then(t => t.default.error(`You have reached the product limit for your ${user?.subscriptionPlan} plan. Please upgrade to add more products.`, { duration: 4000 }));
+         router.push('/pricing');
+         return;
+      }
+
       setProductForm({
          title: '',
          description: '',
@@ -202,15 +263,64 @@ export const CreatorDashboard: React.FC = () => {
    const handleInviteAffiliate = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!inviteForm.productId) {
-         import('react-hot-toast').then(mod => mod.default.error("Please select a product"));
+         toast.error("Please select a product");
          return;
       }
+      setIsSubmitting(true);
       try {
          await createAffiliate(inviteForm.productId, inviteForm.commissionRate);
+         toast.success('Affiliate link created successfully!');
          setIsInviteModalOpen(false);
          setInviteForm({ productId: '', commissionRate: 20 });
-      } catch (err) {
-         console.error('Failed to create affiliate', err);
+      } catch (error: any) {
+         toast.error(error.message || 'Failed to create affiliate link');
+      } finally {
+         setIsSubmitting(false);
+      }
+   };
+
+   const handleWithdrawSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      const amountNum = parseFloat(withdrawForm.amount);
+      if (isNaN(amountNum) || amountNum <= 0) {
+         return toast.error("Please enter a valid amount");
+      }
+      if (user && amountNum > (user.walletBalance || 0)) {
+         return toast.error("Withdrawal amount exceeds available balance.");
+      }
+
+      setIsSubmitting(true);
+      try {
+         const token = (await supabase.auth.getSession()).data.session?.access_token;
+         const response = await fetch('/api/payouts', {
+            method: 'POST',
+            headers: {
+               'Content-Type': 'application/json',
+               'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+               amount: amountNum,
+               bankDetails: {
+                  bankName: withdrawForm.bankName,
+                  bankCode: withdrawForm.bankCode,
+                  accountName: withdrawForm.accountName,
+                  accountNumber: withdrawForm.accountNumber
+               }
+            })
+         });
+
+         const data = await response.json();
+         if (!response.ok) throw new Error(data.error);
+
+         toast.success('Withdrawal request submitted!');
+         setIsWithdrawModalOpen(false);
+         setWithdrawForm({ amount: '', bankName: '', bankCode: '', accountName: '', accountNumber: '' });
+         // Update local user wallet balance
+         updateUserProfile({ walletBalance: data.newBalance });
+      } catch (err: any) {
+         toast.error(err.message || 'Failed to submit withdrawal request');
+      } finally {
+         setIsSubmitting(false);
       }
    };
 
@@ -602,7 +712,7 @@ export const CreatorDashboard: React.FC = () => {
                               <span className="font-bold text-green-400">+₦{((user as any).affiliateEarnings || 0).toFixed(2)}</span>
                            </div>
 
-                           <button className="w-full bg-white text-brand-dark py-4 rounded-xl font-bold hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
+                           <button onClick={() => setIsWithdrawModalOpen(true)} className="w-full bg-white text-brand-dark py-4 rounded-xl font-bold hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
                               <ArrowDownCircle className="w-5 h-5" />
                               Withdraw Earnings
                            </button>
@@ -633,9 +743,9 @@ export const CreatorDashboard: React.FC = () => {
                                     <tr key={p.id}>
                                        <td className="px-6 py-4 font-mono text-sm text-gray-500">#{p.id.toUpperCase()}</td>
                                        <td className="px-6 py-4 font-bold text-brand-dark">₦{p.amount.toFixed(2)}</td>
-                                       <td className="px-6 py-4 text-sm text-gray-500">{new Date(p.date).toLocaleDateString()}</td>
+                                       <td className="px-6 py-4 text-sm text-gray-500">{new Date(p.createdAt).toLocaleDateString()}</td>
                                        <td className="px-6 py-4">
-                                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${p.status === 'completed' ? 'bg-white border border-selar-border shadow-sm text-selar-black' : 'bg-white border border-selar-border shadow-sm text-selar-black'
+                                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${p.status === 'approved' ? 'bg-white border border-selar-border shadow-sm text-selar-black' : 'bg-white border border-selar-border shadow-sm text-selar-black'
                                              }`}>
                                              {p.status}
                                           </span>
@@ -739,7 +849,7 @@ export const CreatorDashboard: React.FC = () => {
                                           <button
                                              onClick={() => {
                                                 navigator.clipboard.writeText(`${window.location.origin}/store/${user.id}?ref=${aff.customLink}`);
-                                                import('react-hot-toast').then(mod => mod.default.success("Copied affiliate link!"));
+                                                toast.success("Copied affiliate link!");
                                              }}
                                              className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-brand-dark rounded-lg text-xs font-bold transition-colors"
                                           >
@@ -1151,7 +1261,7 @@ export const CreatorDashboard: React.FC = () => {
                      <p className="text-center text-gray-500 text-sm mb-6">Are you sure? This action cannot be undone.</p>
                      <div className="flex gap-3">
                         <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold">Cancel</button>
-                        <button onClick={handleDelete} className="flex-1 py-3 bg-white border border-selar-border shadow-sm0 text-white rounded-xl font-bold shadow-lg">Delete</button>
+                        <button onClick={handleDelete} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold shadow-lg">Delete</button>
                      </div>
                   </div>
                </div>
@@ -1210,6 +1320,103 @@ export const CreatorDashboard: React.FC = () => {
                         Generate Link
                      </button>
                   </form>
+               </div>
+            </div>
+         )}
+
+         {/* Withdraw Funds Modal */}
+         {isWithdrawModalOpen && (
+            <div className="fixed inset-0 bg-brand-dark/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+               <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-in">
+                  <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                     <h2 className="font-display font-bold text-xl text-brand-dark flex items-center gap-2">
+                        <Wallet className="w-5 h-5 text-gray-400" />
+                        Withdraw Funds
+                     </h2>
+                     <button onClick={() => setIsWithdrawModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200">
+                        <X className="w-5 h-5" />
+                     </button>
+                  </div>
+                  <div className="p-6">
+                     <div className="bg-brand-dark rounded-2xl p-4 mb-6 text-white flex justify-between items-center">
+                        <span className="text-white/70 text-sm">Available Balance</span>
+                        <span className="font-bold text-xl">₦{(user.walletBalance || 0).toFixed(2)}</span>
+                     </div>
+                     <form onSubmit={handleWithdrawSubmit} className="space-y-4">
+                        <div>
+                           <label className="block text-sm font-bold text-gray-700 mb-2">Amount to Withdraw (₦)</label>
+                           <input
+                              type="number"
+                              required
+                              min="1000"
+                              max={user.walletBalance || 0}
+                              value={withdrawForm.amount}
+                              onChange={(e) => setWithdrawForm({ ...withdrawForm, amount: e.target.value })}
+                              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-purple focus:border-transparent outline-none transition-all placeholder:text-gray-400"
+                              placeholder="e.g. 5000"
+                           />
+                        </div>
+                        <div>
+                           <label className="block text-sm font-bold text-gray-700 mb-2">Bank Name</label>
+                           <select
+                              required
+                              value={withdrawForm.bankCode}
+                              onChange={(e) => {
+                                 const selectedBank = banks.find(b => b.code === e.target.value);
+                                 setWithdrawForm({ 
+                                    ...withdrawForm, 
+                                    bankCode: e.target.value, 
+                                    bankName: selectedBank ? selectedBank.name : '' 
+                                 });
+                              }}
+                              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-purple focus:border-transparent outline-none transition-all"
+                           >
+                              <option value="" disabled>Select your Bank</option>
+                              {banks.map((bank: any) => (
+                                 <option key={bank.code} value={bank.code}>{bank.name}</option>
+                              ))}
+                           </select>
+                        </div>
+                        <div>
+                           <label className="block text-sm font-bold text-gray-700 mb-2">Account Number</label>
+                           <input
+                              type="text"
+                              required
+                              value={withdrawForm.accountNumber}
+                              onChange={(e) => setWithdrawForm({ ...withdrawForm, accountNumber: e.target.value })}
+                              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-purple focus:border-transparent outline-none transition-all placeholder:text-gray-400"
+                              placeholder="10 digit account number"
+                           />
+                        </div>
+                        <div>
+                           <label className="block text-sm font-bold text-gray-700 mb-2">Account Name</label>
+                           <input
+                              type="text"
+                              required
+                              value={withdrawForm.accountName}
+                              onChange={(e) => setWithdrawForm({ ...withdrawForm, accountName: e.target.value })}
+                              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-purple focus:border-transparent outline-none transition-all placeholder:text-gray-400"
+                              placeholder="Name on account"
+                           />
+                        </div>
+
+                        <div className="pt-4 flex gap-3">
+                           <button
+                              type="button"
+                              onClick={() => setIsWithdrawModalOpen(false)}
+                              className="flex-1 px-4 py-3 border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                           >
+                              Cancel
+                           </button>
+                           <button
+                              type="submit"
+                              className="flex-1 bg-brand-dark text-white px-4 py-3 rounded-xl font-bold hover:bg-black transition-all shadow-lg shadow-subtle hover:shadow-elevated"
+                           >
+                              Request Payout
+                           </button>
+                        </div>
+                     </form>
+                  </div>
                </div>
             </div>
          )}

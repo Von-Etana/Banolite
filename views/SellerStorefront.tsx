@@ -21,24 +21,36 @@ const stagger = {
     visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
 };
 
-export const SellerStorefront: React.FC = () => {
-    const { sellerId } = useParams<{ sellerId: string }>();
+export const SellerStorefront: React.FC<{ storeNameParam?: string }> = ({ storeNameParam }) => {
+    const params = useParams<{ sellerId?: string }>();
     const router = useRouter();
     const { products, addToCart, orders, reviews, getAllUsers } = useStore();
     const [sellerInfo, setSellerInfo] = useState<User | null>(null);
+
+    const identifier = storeNameParam || params.sellerId;
 
     useEffect(() => {
         // Fetch seller details to get brand color and banner
         const loadSellerInfo = async () => {
             const users = await getAllUsers();
-            const seller = users.find(u => u.id === sellerId);
+            let seller;
+            if (storeNameParam) {
+                const decoded = decodeURIComponent(storeNameParam).toLowerCase();
+                seller = users.find(u => 
+                    u.storeName?.toLowerCase() === decoded || 
+                    u.name.toLowerCase() === decoded
+                );
+            } else {
+                seller = users.find(u => u.id === identifier);
+            }
             if (seller) setSellerInfo(seller);
         };
-        loadSellerInfo();
-    }, [sellerId, getAllUsers]);
+        if (identifier) loadSellerInfo();
+    }, [identifier, storeNameParam, getAllUsers]);
 
-    const sellerProducts = products.filter(p => p.creatorId === sellerId);
-    const sellerName = sellerProducts[0]?.creator || 'Unknown Creator';
+    const resolvedSellerId = sellerInfo?.id || params.sellerId;
+    const sellerProducts = products.filter(p => p.creatorId === resolvedSellerId);
+    const sellerName = sellerInfo?.name || sellerProducts[0]?.creator || 'Unknown Creator';
     const totalSales = sellerProducts.reduce((sum, p) => sum + (p.salesCount || 0), 0);
 
     // Calculate average rating across all seller products

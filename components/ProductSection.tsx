@@ -65,44 +65,44 @@ export const ProductSection: React.FC = () => {
               key={product.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-30px' }}
+              viewport={{ once: true, margin: '-20px' }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className="bg-white rounded-2xl p-3 border border-selar-border hover:shadow-card-hover transition-all duration-300 group flex flex-col"
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
+              className="bg-white rounded-2xl p-4 border border-gray-200 hover:border-gray-300 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-300 group flex flex-col"
             >
-              <Link href={`/book/${product.id}`} className="aspect-[4/5] rounded-xl mb-3 relative overflow-hidden flex items-center justify-center cursor-pointer bg-brand-light">
+              <Link href={`/book/${product.id}`} className="aspect-[4/5] rounded-xl mb-4 relative overflow-hidden flex items-center justify-center cursor-pointer bg-gray-100 shadow-inner">
                 <img src={product.coverUrl} alt={product.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
 
-                <div className="absolute top-2.5 left-2.5 badge-dark text-[9px]">
+                <div className="absolute top-3 left-3 bg-brand-dark text-white shadow-md text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md">
                   {product.type}
                 </div>
 
-                <div className="absolute top-2.5 right-2.5 bg-white px-2 py-1 rounded-lg text-xs font-bold text-brand-dark border border-selar-border/50">
+                <div className="absolute top-3 right-3 bg-white px-2.5 py-1 rounded-md text-xs font-bold text-brand-dark shadow-md border border-gray-100">
                   {formatPrice(product.price)}
                 </div>
 
-                {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <div className="bg-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-elevated">
-                    <Eye className="w-3 h-3" /> View Listing
+                {/* Hover Overlay - Solid (No Blur) */}
+                <div className="absolute inset-0 bg-brand-dark/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="bg-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xl text-brand-dark transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                    <Eye className="w-3.5 h-3.5" /> View Product
                   </div>
                 </div>
               </Link>
 
               <div className="px-1 pb-1 flex-1 flex flex-col">
                 <Link href={`/book/${product.id}`} className="block">
-                  <h3 className="font-bold text-sm text-brand-dark mb-1 hover:text-brand-purple transition-colors line-clamp-1">{product.title}</h3>
+                  <h3 className="font-bold text-base text-gray-900 mb-1.5 hover:text-brand-primary transition-colors line-clamp-1">{product.title}</h3>
                 </Link>
-                <p className="text-brand-muted text-xs mb-3 line-clamp-2">{product.description}</p>
+                <p className="text-gray-500 text-sm mb-4 line-clamp-2 leading-relaxed">{product.description}</p>
 
-                <div className="mt-auto pt-3 border-t border-selar-border/50 flex items-center justify-between gap-4">
-                  <span className="text-xs font-medium text-brand-muted">by {product.creator.split(' ')[0]}</span>
+                <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between gap-4">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">by {product.creator.split(' ')[0]}</span>
                   <button
                     onClick={() => addToCart(product)}
-                    className="p-2 rounded-lg bg-brand-dark text-white hover:bg-brand-purple transition-all"
+                    className="p-2.5 rounded-xl bg-gray-50 text-gray-700 hover:bg-brand-primary hover:text-white hover:shadow-lg hover:shadow-brand-primary/20 transition-all border border-gray-200 hover:border-brand-primary"
                     title="Add to Cart"
                   >
-                    <ShoppingCart className="w-3.5 h-3.5" />
+                    <ShoppingCart className="w-4 h-4" />
                   </button>
                 </div>
               </div>

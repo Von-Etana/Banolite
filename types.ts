@@ -36,6 +36,7 @@ export interface CartItem extends Product {
 }
 
 export type UserRole = 'buyer' | 'seller' | 'admin';
+export type SubscriptionTier = 'starter' | 'pro' | 'business';
 
 export interface User {
   id: string;
@@ -58,6 +59,7 @@ export interface User {
     twitter?: string;
     website?: string;
   };
+  subscriptionPlan: SubscriptionTier;
 }
 
 export interface StoredUser extends Omit<User, 'passwordHash'> {
@@ -74,7 +76,7 @@ export interface Review {
   date: Date;
 }
 
-export type OrderStatus = 'pending' | 'completed' | 'refunded' | 'failed';
+export type OrderStatus = 'pending' | 'processing' | 'completed' | 'refunded' | 'failed' | 'expired';
 
 export interface Order {
   id: string;
@@ -124,15 +126,15 @@ export interface Topic {
   color: string;
 }
 
-export type PayoutStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type PayoutStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Payout {
   id: string;
-  sellerId: string;
+  userId: string;
   amount: number;
-  date: Date;
+  createdAt: Date;
   status: PayoutStatus;
-  bankDetails?: string;
+  bankDetails?: any;
 }
 
 export interface Transaction {
