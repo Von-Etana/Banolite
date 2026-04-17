@@ -5,6 +5,7 @@ interface PaystackButtonProps {
     email: string;
     amount: number; // in Naira (will be converted to kobo)
     reference?: string; // Optional custom reference (Order ID)
+    metadata?: Record<string, any>; // Additional metadata for the transaction
     onSuccess: (reference: any) => void;
     onClose: () => void;
     disabled?: boolean;
@@ -19,6 +20,7 @@ export const PaystackButton: React.FC<PaystackButtonProps> = ({
     email,
     amount,
     reference,
+    metadata = {},
     onSuccess,
     onClose,
     disabled = false,
@@ -26,6 +28,7 @@ export const PaystackButton: React.FC<PaystackButtonProps> = ({
     children
 }) => {
     const [isMounted, setIsMounted] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
@@ -45,6 +48,10 @@ export const PaystackButton: React.FC<PaystackButtonProps> = ({
                 amount: Math.round(amount * 100),
                 currency: 'NGN',
                 ref: refString,
+                metadata: {
+                    ...metadata,
+                    custom_fields: metadata.custom_fields || [],
+                },
                 callback: (response: any) => {
                     onSuccess(response);
                 },
@@ -54,11 +61,13 @@ export const PaystackButton: React.FC<PaystackButtonProps> = ({
             });
             popup.openIframe();
         } else {
+            setIsLoading(true);
             // Fallback: load Paystack script first
             const script = document.createElement('script');
             script.src = 'https://js.paystack.co/v1/inline.js';
             script.async = true;
             script.onload = () => {
+                setIsLoading(false);
                 const pop = (window as any).PaystackPop;
                 if (pop) {
                     const popup = pop.setup({
@@ -67,6 +76,10 @@ export const PaystackButton: React.FC<PaystackButtonProps> = ({
                         amount: Math.round(amount * 100),
                         currency: 'NGN',
                         ref: refString,
+                        metadata: {
+                            ...metadata,
+                            custom_fields: metadata.custom_fields || [],
+                        },
                         callback: (response: any) => {
                             onSuccess(response);
                         },
@@ -77,6 +90,10 @@ export const PaystackButton: React.FC<PaystackButtonProps> = ({
                     popup.openIframe();
                 }
             };
+            script.onerror = () => {
+                setIsLoading(false);
+                console.error('Failed to load Paystack script');
+            };
             document.body.appendChild(script);
         }
     };
@@ -85,10 +102,10 @@ export const PaystackButton: React.FC<PaystackButtonProps> = ({
         <button
             type="button"
             onClick={handleClick}
-            disabled={disabled || !isMounted}
+            disabled={disabled || !isMounted || isLoading}
             className={className}
         >
-            {children}
+            {isLoading ? 'Loading Payment...' : children}
         </button>
     );
 };

@@ -86,8 +86,14 @@ export async function processWebhookEvent(event: WebhookEvent): Promise<boolean>
             } else {
                 await handleChargeSuccess(supabase, event);
             }
-        } else if (event.event_type === 'invoice.payment_failed') {
-            await handleSubscriptionFailure(supabase, event);
+        } else if (event.event_type === 'invoice.payment_failed' || event.event_type === 'subscription.disable') {
+            await handleSubscriptionDowngrade(supabase, event);
+        } else if (event.event_type === 'charge.refunded') {
+            await handleChargeRefunded(supabase, event);
+        } else if (event.event_type === 'transfer.success') {
+            await handleTransferSuccess(supabase, event);
+        } else if (event.event_type === 'transfer.failed' || event.event_type === 'transfer.reversed') {
+            await handleTransferFailure(supabase, event);
         }
         // Add more event types here as needed:
 
@@ -167,14 +173,12 @@ async function handleSubscriptionSuccess(supabase: SupabaseClient, event: Webhoo
     });
 }
 
-async function handleSubscriptionFailure(supabase: SupabaseClient, event: WebhookEvent) {
+async function handleSubscriptionDowngrade(supabase: SupabaseClient, event: WebhookEvent) {
     const data = event.payload.data;
-    // Paystack invoice failed event typically includes customer info or subscription info
-    // If we have customer email, we can downgrade them
-    const email = data.customer?.email;
+    // Paystack events for subscriptions usually include customer info
+    const email = data.customer?.email || data.email;
     if (!email) return;
 
-    // Find user by email (assuming email is unique config in auth)
     const { data: profile } = await supabase
         .from('profiles')
         .select('id')
@@ -189,9 +193,90 @@ async function handleSubscriptionFailure(supabase: SupabaseClient, event: Webhoo
             
         await supabase.from('notifications').insert({
             user_id: profile.id,
-            type: 'subscription_failed',
-            message: `Your recurring subscription payment failed. Your account has been securely downgraded to Starter. Please update your payment method.`,
+            type: 'subscription',
+            message: `Your subscription has been downgraded to Starter due to a payment failure or cancellation.`,
             link: '/pricing',
+        });
+    }
+}
+
+async function handleChargeRefunded(supabase: SupabaseClient, event: WebhookEvent) {
+    const data = event.payload.data;
+    const orderId = data.reference;
+    if (!orderId) return;
+
+    await supabase
+        .from('orders')
+        .update({ status: 'refunded' })
+        .eq('id', orderId);
+
+    // Optional: Notify buyer
+    const { data: order } = await supabase.from('orders').select('user_id').eq('id', orderId).single();
+    if (order && order.user_id !== 'guest') {
+        await supabase.from('notifications').insert({
+            user_id: order.user_id,
+            type: 'order',
+            message: `Your order #${orderId.slice(0, 8)} has been refunded.`,
+        });
+    }
+}
+
+// ─── Transfer Handlers ────────────────────────────────────────────
+
+async function handleTransferSuccess(supabase: SupabaseClient, event: WebhookEvent) {
+    const data = event.payload.data;
+    const reference = data.reference; // This is the paystack_reference we stored
+
+    const { data: payout } = await supabase
+        .from('payouts')
+        .select('id, user_id, amount')
+        .eq('metadata->>paystack_reference', reference)
+        .single();
+
+    if (payout) {
+        await supabase
+            .from('payouts')
+            .update({ status: 'completed' })
+            .eq('id', payout.id);
+
+        await supabase.from('notifications').insert({
+            user_id: payout.user_id,
+            type: 'payout',
+            message: `Success! Your withdrawal of ₦${payout.amount.toLocaleString()} has been processed by the bank.`,
+        });
+    }
+}
+
+async function handleTransferFailure(supabase: SupabaseClient, event: WebhookEvent) {
+    const data = event.payload.data;
+    const reference = data.reference;
+
+    const { data: payout } = await supabase
+        .from('payouts')
+        .select('id, user_id, amount')
+        .eq('metadata->>paystack_reference', reference)
+        .single();
+
+    if (payout) {
+        // Mark payout as failed
+        await supabase
+            .from('payouts')
+            .update({ 
+                status: 'failed',
+                metadata: { ...payout.metadata, failure_reason: data.reason || 'Bank rejection' }
+            })
+            .eq('id', payout.id);
+
+        // Refund the user's wallet
+        await supabase.rpc('increment_wallet_balance', {
+            p_user_id: payout.user_id,
+            p_amount: payout.amount,
+        });
+
+        await supabase.from('notifications').insert({
+            user_id: payout.user_id,
+            type: 'payout',
+            message: `Correction: Your withdrawal of ₦${payout.amount.toLocaleString()} failed or was reversed. The funds have been returned to your wallet.`,
         });
     }
 }
