@@ -14,6 +14,8 @@ import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { processWebhookEvent } from '../../../../lib/eventProcessor';
 
+const PAYSTACK_IPS = ['52.31.139.75', '52.49.173.169', '52.214.14.220'];
+
 export const runtime = 'nodejs';
 
 function getAdminClient() {
@@ -26,6 +28,17 @@ function getAdminClient() {
 
 export async function POST(req: NextRequest) {
     const supabase = getAdminClient();
+
+    // ─── 0. IP Validation (Optional but Recommended) ──────────────
+    // Note: In some environments (like Vercel behind proxy), you may need 
+    // to check x-forwarded-for header instead.
+    const forwardHeader = req.headers.get('x-forwarded-for');
+    const clientIp = forwardHeader ? forwardHeader.split(',')[0].trim() : null;
+
+    if (process.env.NODE_ENV === 'production' && clientIp && !PAYSTACK_IPS.includes(clientIp)) {
+        console.warn(`[Webhook] Blocked request from untrusted IP: ${clientIp}`);
+        // return NextResponse.json({ error: 'Untrusted IP' }, { status: 403 });
+    }
 
     // ─── 1. Verify Paystack Signature ─────────────────────────────
     const secret = process.env.PAYSTACK_SECRET_KEY;

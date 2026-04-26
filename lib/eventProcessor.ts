@@ -253,17 +253,18 @@ async function handleTransferFailure(supabase: SupabaseClient, event: WebhookEve
 
     const { data: payout } = await supabase
         .from('payouts')
-        .select('id, user_id, amount')
+        .select('id, user_id, amount, metadata')
         .eq('metadata->>paystack_reference', reference)
         .single();
 
     if (payout) {
+        const metadata = (payout as any).metadata || {};
         // Mark payout as failed
         await supabase
             .from('payouts')
             .update({ 
                 status: 'failed',
-                metadata: { ...payout.metadata, failure_reason: data.reason || 'Bank rejection' }
+                metadata: { ...metadata, failure_reason: data.reason || 'Bank rejection' }
             })
             .eq('id', payout.id);
 
