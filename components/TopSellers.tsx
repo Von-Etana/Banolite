@@ -3,7 +3,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
 
-import { PdfCover } from './PdfCover';
+import dynamic from 'next/dynamic';
+
+const PdfCover = dynamic(() => import('./PdfCover').then(mod => mod.PdfCover), {
+    ssr: false,
+    loading: () => <div className="w-full h-full flex items-center justify-center bg-[#F9F9F9] text-brand-muted">Loading cover...</div>
+});
 
 const topSellers = [
     {
