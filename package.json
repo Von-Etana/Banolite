@@ -18,10 +18,12 @@
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.563.0",
     "next": "14.2.3",
+    "pdfjs-dist": "^5.7.284",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.6.0",
     "react-paystack": "^6.0.0",
+    "react-pdf": "^10.4.1",
     "recharts": "^3.7.0",
     "resend": "^6.9.2",
     "tailwind-merge": "^3.5.0"

@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { Hero } from '../components/Hero';
+import { TopSellers } from '../components/TopSellers';
 import { FeaturesGrid } from '../components/FeaturesGrid';
 import { AboutSection } from '../components/AboutSection';
 import { HowToJoinSection } from '../components/HowToJoinSection';
@@ -13,11 +14,12 @@ export const Home: React.FC = () => {
   return (
     <div className="animate-fade-in">
       <Hero />
-      <FeaturesGrid />
+      <TopSellers />
+      {/* <FeaturesGrid /> */}
       <AboutSection />
       <HowToJoinSection />
       <DiscoverProducts />
-      <Testimonials />
+      {/* <Testimonials /> */}
       <FaqSection />
       <CTASection />
     </div>
