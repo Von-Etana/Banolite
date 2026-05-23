@@ -33,7 +33,7 @@ export const Hero: React.FC = () => {
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
               <h1 className="font-display font-black text-5xl sm:text-6xl md:text-7xl lg:text-[76px] leading-[1.05] text-brand-dark tracking-[-2px] mb-6">
-                {siteContent.heroHeadline || "Turn your knowledge into a"} <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-[#8F0182]">thriving business.</span>
+                {siteContent.heroHeadline || "Turn your knowledge into a"} 
               </h1>
             </motion.div>
 
