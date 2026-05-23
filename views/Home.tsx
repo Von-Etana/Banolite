@@ -2,6 +2,7 @@
 import React from 'react';
 import { Hero } from '../components/Hero';
 import { TopSellers } from '../components/TopSellers';
+import { UpcomingEvents } from '../components/UpcomingEvents';
 import { FeaturesGrid } from '../components/FeaturesGrid';
 import { AboutSection } from '../components/AboutSection';
 import { HowToJoinSection } from '../components/HowToJoinSection';
@@ -15,6 +16,7 @@ export const Home: React.FC = () => {
     <div className="animate-fade-in">
       <Hero />
       <TopSellers />
+      <UpcomingEvents />
       {/* <FeaturesGrid /> */}
       <AboutSection />
       <HowToJoinSection />
