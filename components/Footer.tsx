@@ -51,9 +51,7 @@ export const Footer: React.FC = () => {
           {/* Brand */}
           <div className="col-span-2 md:col-span-2">
             <Link href="/" className="inline-block mb-6">
-              <span className="font-display font-black text-2xl tracking-tighter text-brand-dark">
-                BANOLITE.
-              </span>
+              <img src="/ban.png" alt="Banolite Logo" className="h-8 w-auto object-contain" />
             </Link>
             <p className="text-[15px] text-brand-muted max-w-xs leading-relaxed mb-6 font-medium">
               The premier platform for creators to build their brand, share their knowledge, and grow their revenue stream on their own terms.
