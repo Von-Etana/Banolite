@@ -4,7 +4,7 @@ import { Upload, X, CheckCircle, Loader2 } from 'lucide-react';
 import { createClient } from '../lib/supabase/client';
 
 interface FileUploadProps {
-    bucket: 'covers' | 'files' | 'avatars' | 'banners';
+    bucket: 'covers' | 'files' | 'avatars' | 'banners' | 'course_videos';
     accept?: string;
     label: string;
     hint?: string;

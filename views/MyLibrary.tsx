@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import {
     BookOpen, Download, Play, Ticket, Briefcase,
     Calendar, Clock, FileText, ExternalLink, Search,
-    Filter, Grid, List, Star, Lock
+    Filter, Grid, List, Star, Lock,
+    Headphones, Mail, Users
 } from 'lucide-react';
 import { Product, Order, Booking, Ticket as TicketType } from '../types';
 import { COACHES, EVENTS } from '../constants';
@@ -65,6 +66,10 @@ export const MyLibrary: React.FC = () => {
             case 'COURSE': return <Play className="w-5 h-5" />;
             case 'TICKET': return <Ticket className="w-5 h-5" />;
             case 'SERVICE': return <Briefcase className="w-5 h-5" />;
+            case 'PODCAST': return <Headphones className="w-5 h-5" />;
+            case 'NEWSLETTER': return <Mail className="w-5 h-5" />;
+            case 'COMMUNITY': return <Users className="w-5 h-5" />;
+            case 'BUNDLE': return <Briefcase className="w-5 h-5" />;
             default: return <FileText className="w-5 h-5" />;
         }
     };
@@ -73,7 +78,10 @@ export const MyLibrary: React.FC = () => {
         switch (product.type) {
             case 'COURSE':
                 return (
-                    <button className="w-full py-3 bg-selar-black text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-selar-black/90 transition-all">
+                    <button 
+                        onClick={() => router.push(`/library/course/${product.id}`)}
+                        className="w-full py-3 bg-selar-black text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-selar-black/90 transition-all"
+                    >
                         <Play className="w-4 h-4" />
                         Start Learning
                     </button>
@@ -92,9 +100,76 @@ export const MyLibrary: React.FC = () => {
                         Contact Seller
                     </button>
                 );
+            case 'BUNDLE':
+                return (
+                    <button 
+                        onClick={() => router.push(`/library/bundle/${product.id}`)}
+                        className="w-full py-3 bg-brand-purple text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-brand-purple/90 transition-all"
+                    >
+                        <Briefcase className="w-4 h-4" />
+                        View Bundle
+                    </button>
+                );
+            case 'PODCAST':
+                return (
+                    <button 
+                        onClick={() => {
+                            if (product.fileUrl) window.open(product.fileUrl, '_blank');
+                            else alert('Audio file not found.');
+                        }}
+                        className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all"
+                    >
+                        <Headphones className="w-4 h-4" />
+                        Listen Now
+                    </button>
+                );
+            case 'NEWSLETTER':
+                return (
+                    <button 
+                        onClick={() => {
+                            if (product.fileUrl) window.open(product.fileUrl, '_blank');
+                            else alert('Newsletter content not available.');
+                        }}
+                        className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all"
+                    >
+                        <Mail className="w-4 h-4" />
+                        Read Latest Issue
+                    </button>
+                );
+            case 'COMMUNITY':
+                return (
+                    <button 
+                        onClick={() => {
+                            if (product.fileUrl) window.open(product.fileUrl, '_blank');
+                            else alert('Community link not available.');
+                        }}
+                        className="w-full py-3 bg-brand-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-brand-primary/90 transition-all"
+                    >
+                        <Users className="w-4 h-4" />
+                        Join Community
+                    </button>
+                );
+            case 'SUBSCRIPTION':
+                return (
+                    <button 
+                        className="w-full py-3 bg-yellow-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-yellow-600 transition-all"
+                    >
+                        <Star className="w-4 h-4" />
+                        Access Member Area
+                    </button>
+                );
             default:
                 return (
-                    <button className="w-full py-3 bg-green-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition-all">
+                    <button 
+                        onClick={() => {
+                            if (product.fileUrl) {
+                                window.open(product.fileUrl, '_blank');
+                            } else {
+                                alert('No file available for download.');
+                            }
+                        }}
+                        className="w-full py-3 bg-green-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition-all"
+                    >
                         <Download className="w-4 h-4" />
                         Download
                     </button>
@@ -260,15 +335,80 @@ export const MyLibrary: React.FC = () => {
                                             </div>
                                             <div className="flex gap-3 mt-3">
                                                 {product.type === 'EBOOK' && (
-                                                    <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-green-700 transition-all">
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (product.fileUrl) {
+                                                                window.open(product.fileUrl, '_blank');
+                                                            } else {
+                                                                alert('No file available for download.');
+                                                            }
+                                                        }}
+                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-green-700 transition-all"
+                                                    >
                                                         <Download className="w-4 h-4" />
                                                         Download
                                                     </button>
                                                 )}
                                                 {product.type === 'COURSE' && (
-                                                    <button className="px-4 py-2 bg-selar-black text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-selar-black/90 transition-all">
+                                                    <button 
+                                                        onClick={() => router.push(`/library/course/${product.id}`)}
+                                                        className="px-4 py-2 bg-selar-black text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-selar-black/90 transition-all"
+                                                    >
                                                         <Play className="w-4 h-4" />
                                                         Continue Learning
+                                                    </button>
+                                                )}
+                                                {product.type === 'BUNDLE' && (
+                                                    <button 
+                                                        onClick={() => router.push(`/library/bundle/${product.id}`)}
+                                                        className="px-4 py-2 bg-brand-purple text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-brand-purple/90 transition-all"
+                                                    >
+                                                        <Briefcase className="w-4 h-4" />
+                                                        View Bundle
+                                                    </button>
+                                                )}
+                                                {product.type === 'PODCAST' && (
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (product.fileUrl) window.open(product.fileUrl, '_blank');
+                                                            else alert('Audio file not found.');
+                                                        }}
+                                                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-indigo-700 transition-all"
+                                                    >
+                                                        <Headphones className="w-4 h-4" />
+                                                        Listen Now
+                                                    </button>
+                                                )}
+                                                {product.type === 'NEWSLETTER' && (
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (product.fileUrl) window.open(product.fileUrl, '_blank');
+                                                            else alert('Newsletter content not available.');
+                                                        }}
+                                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-blue-700 transition-all"
+                                                    >
+                                                        <Mail className="w-4 h-4" />
+                                                        Read Latest Issue
+                                                    </button>
+                                                )}
+                                                {product.type === 'COMMUNITY' && (
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (product.fileUrl) window.open(product.fileUrl, '_blank');
+                                                            else alert('Community link not available.');
+                                                        }}
+                                                        className="px-4 py-2 bg-brand-primary text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-brand-primary/90 transition-all"
+                                                    >
+                                                        <Users className="w-4 h-4" />
+                                                        Join Community
+                                                    </button>
+                                                )}
+                                                {product.type === 'SUBSCRIPTION' && (
+                                                    <button 
+                                                        className="px-4 py-2 bg-yellow-500 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-yellow-600 transition-all"
+                                                    >
+                                                        <Star className="w-4 h-4" />
+                                                        Access Member Area
                                                     </button>
                                                 )}
                                                 <button

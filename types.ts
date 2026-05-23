@@ -1,4 +1,19 @@
-export type ProductType = 'EBOOK' | 'COURSE' | 'TICKET' | 'SERVICE' | 'SUBSCRIPTION' | 'COACHING';
+export type ProductType = 'EBOOK' | 'COURSE' | 'TICKET' | 'SERVICE' | 'SUBSCRIPTION' | 'COACHING' | 'PODCAST' | 'COMMUNITY' | 'NEWSLETTER' | 'BUNDLE';
+
+export interface CourseLesson {
+  id: string;
+  title: string;
+  videoUrl?: string;
+  content?: string;
+  duration?: number; // in seconds
+  isLocked?: boolean;
+}
+
+export interface CourseModule {
+  id: string;
+  title: string;
+  lessons: CourseLesson[];
+}
 
 export interface Product {
   id: string;
@@ -19,6 +34,7 @@ export interface Product {
   // For courses
   lessons?: number;
   duration?: string;
+  curriculum?: CourseModule[];
   // For tickets
   eventDate?: Date;
   eventLocation?: string;
@@ -28,6 +44,8 @@ export interface Product {
   // For digital products
   fileUrl?: string;
   fileSize?: string;
+  // For bundles
+  bundleProductIds?: string[];
 }
 
 export interface CartItem extends Product {

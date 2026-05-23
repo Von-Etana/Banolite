@@ -228,6 +228,8 @@ export const CreatorDashboard: React.FC = () => {
             category: productForm.category || 'Education',
             discountOffer: Number(productForm.discountOffer) || 0,
             type: productForm.type || 'EBOOK',
+            fileUrl: productForm.fileUrl,
+            bundleProductIds: productForm.bundleProductIds,
             metadata: (productForm.type === 'TICKET' || productForm.type === 'COACHING')
                ? { eventDate: productForm.eventDate, eventLocation: productForm.eventLocation }
                : undefined
@@ -611,6 +613,15 @@ export const CreatorDashboard: React.FC = () => {
                                     <td className="px-6 py-4 text-sm text-gray-600">{p.salesCount || 0}</td>
                                     <td className="px-6 py-4 text-right">
                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                          {p.type === 'COURSE' && (
+                                             <button 
+                                                onClick={() => router.push(`/dashboard/seller/course/${p.id}`)} 
+                                                className="px-3 py-1.5 hover:bg-white border border-brand-purple shadow-sm text-brand-purple font-bold text-xs rounded-lg transition-colors"
+                                                title="Edit Curriculum"
+                                             >
+                                                Curriculum
+                                             </button>
+                                          )}
                                           <button onClick={() => handleOpenEdit(p)} className="p-2 hover:bg-white border border-selar-border shadow-sm text-selar-black rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button>
                                           <button onClick={() => setShowDeleteConfirm(p.id)} className="p-2 hover:bg-white border border-selar-border shadow-sm text-red-500 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
                                        </div>
@@ -1028,8 +1039,13 @@ export const CreatorDashboard: React.FC = () => {
                                        >
                                           <option value="EBOOK">Digital Product / eBook</option>
                                           <option value="COURSE">Online Video Course</option>
+                                          <option value="COACHING">Coaching Session</option>
                                           <option value="TICKET">Event Ticket</option>
                                           <option value="SERVICE">Professional Service</option>
+                                          <option value="PODCAST">Podcast</option>
+                                          <option value="COMMUNITY">Community Access</option>
+                                          <option value="NEWSLETTER">Paid Newsletter</option>
+                                          <option value="BUNDLE">Product Bundle</option>
                                        </select>
                                     </div>
                                     <div className="col-span-2 sm:col-span-1">
@@ -1094,7 +1110,50 @@ export const CreatorDashboard: React.FC = () => {
                                        />
                                     </div>
 
-                                    {productForm.type === 'TICKET' || productForm.type === 'COACHING' ? (
+                                    {productForm.type === 'BUNDLE' ? (
+                                       <div className="col-span-2 grid grid-cols-2 gap-4">
+                                          <div className="col-span-2">
+                                             <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Select Products for Bundle</label>
+                                             <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 max-h-48 overflow-y-auto space-y-2">
+                                                {sellerProducts.filter(p => p.type !== 'BUNDLE').length === 0 ? (
+                                                   <p className="text-sm text-gray-500 italic">No products available to bundle.</p>
+                                                ) : (
+                                                   sellerProducts.filter(p => p.type !== 'BUNDLE').map(p => (
+                                                      <label key={p.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors border border-transparent hover:border-gray-200">
+                                                         <input 
+                                                            type="checkbox" 
+                                                            checked={(productForm.bundleProductIds || []).includes(p.id)}
+                                                            onChange={(e) => {
+                                                               const current = productForm.bundleProductIds || [];
+                                                               if (e.target.checked) {
+                                                                  setProductForm({ ...productForm, bundleProductIds: [...current, p.id] });
+                                                               } else {
+                                                                  setProductForm({ ...productForm, bundleProductIds: current.filter(id => id !== p.id) });
+                                                               }
+                                                            }}
+                                                            className="w-4 h-4 text-brand-dark rounded border-gray-300 focus:ring-brand-dark"
+                                                         />
+                                                         <div className="flex-1">
+                                                            <p className="text-sm font-bold text-brand-dark">{p.title}</p>
+                                                            <p className="text-xs text-gray-500">₦{p.price.toFixed(2)}</p>
+                                                         </div>
+                                                      </label>
+                                                   ))
+                                                )}
+                                             </div>
+                                          </div>
+                                          <div className="col-span-2 mt-2">
+                                             <FileUpload
+                                                bucket="covers"
+                                                accept="image/*"
+                                                label="Bundle Cover Image"
+                                                hint="JPEG, PNG or WebP"
+                                                onUploadComplete={(url) => setProductForm({ ...productForm, coverUrl: url })}
+                                                currentUrl={productForm.coverUrl}
+                                             />
+                                          </div>
+                                       </div>
+                                    ) : productForm.type === 'TICKET' || productForm.type === 'COACHING' ? (
                                        <div className="col-span-2 grid grid-cols-2 gap-4">
                                           <div>
                                              <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Event Date & Time</label>
@@ -1132,9 +1191,9 @@ export const CreatorDashboard: React.FC = () => {
                                        <div className="col-span-2 grid grid-cols-2 gap-4">
                                           <FileUpload
                                              bucket="files"
-                                             accept=".pdf,.zip,.mp4,.epub"
+                                             accept=".pdf,.zip,.mp4,.epub,.mp3"
                                              label="Product Content"
-                                             hint="PDF, ZIP, MP4 or EPUB"
+                                             hint="PDF, ZIP, MP4, MP3 or EPUB"
                                              onUploadComplete={(url) => setProductForm({ ...productForm, fileUrl: url })}
                                              currentUrl={productForm.fileUrl}
                                           />

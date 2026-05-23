@@ -337,20 +337,25 @@ async function handleChargeSuccess(supabase: SupabaseClient, event: WebhookEvent
         });
 
         // Coaching bookings
-        if (item.type === 'COACHING' && item.metadata?.bookingDate && item.metadata?.coachId) {
+        if (item.type === 'COACHING') {
+            const bookingDate = item.metadata?.bookingDate || item.metadata?.eventDate || new Date().toISOString();
+            const coachId = item.metadata?.coachId || item.creatorId;
+            const meetLinkStr = item.metadata?.eventLocation && item.metadata.eventLocation.startsWith('http') 
+                ? item.metadata.eventLocation 
+                : `https://meet.google.com/${crypto.randomBytes(4).toString('hex')}`;
+                
             for (let i = 0; i < (item.quantity || 1); i++) {
-                const meetLink = `https://meet.google.com/${crypto.randomBytes(4).toString('hex')}`;
                 await supabase.from('bookings').insert({
                     user_id: buyerId !== 'guest' ? buyerId : null,
-                    coach_id: item.metadata.coachId,
+                    coach_id: coachId,
                     order_item_id: item.id,
-                    date: item.metadata.bookingDate,
+                    date: bookingDate,
                     status: 'upcoming',
-                    meet_link: meetLink,
+                    meet_link: meetLinkStr,
                     amount: item.price,
                 });
-                emailAdditionalInfo.bookingDate = item.metadata.bookingDate;
-                emailAdditionalInfo.meetLink = meetLink;
+                emailAdditionalInfo.bookingDate = bookingDate;
+                emailAdditionalInfo.meetLink = meetLinkStr;
             }
         }
 
