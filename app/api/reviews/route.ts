@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '../../../lib/supabase/server';
+import { getCache, setCache, invalidateCache, TTL } from '../../../lib/redis';
 
 // POST /api/reviews — Create a review
 export async function POST(req: NextRequest) {
@@ -56,17 +57,19 @@ export async function POST(req: NextRequest) {
         await supabase.from('notifications').insert({
             user_id: product.creator_id,
             type: 'review',
-            message: `${profile?.name || 'Someone'} left a ${rating}★ review on "₦{product.title}"`,
+            message: `${profile?.name || 'Someone'} left a ${rating}★ review on "${product.title}"`,
             link: `/book/${productId}`,
         });
     }
+
+    // ─── Invalidate reviews cache ──────────────────────────────────
+    await invalidateCache(`reviews:product:${productId}`);
 
     return NextResponse.json(review, { status: 201 });
 }
 
 // GET /api/reviews?productId=xxx — Get reviews for a product
 export async function GET(req: NextRequest) {
-    const supabase = createServerClient();
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get('productId');
 
@@ -74,6 +77,17 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Missing productId' }, { status: 400 });
     }
 
+    // ─── Cache check ───────────────────────────────────────────────
+    const cacheKey = `reviews:product:${productId}`;
+    const cached = await getCache<any[]>(cacheKey);
+    if (cached) {
+        const res = NextResponse.json(cached);
+        res.headers.set('X-Cache', 'HIT');
+        return res;
+    }
+
+    // ─── Supabase query ────────────────────────────────────────────
+    const supabase = createServerClient();
     const { data, error } = await supabase
         .from('reviews')
         .select('*')
@@ -84,5 +98,13 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(data || []);
+    const result = data || [];
+
+    // ─── Populate cache ───────────────────────────────────────────
+    await setCache(cacheKey, result, TTL.REVIEWS);
+
+    const res = NextResponse.json(result);
+    res.headers.set('X-Cache', 'MISS');
+    return res;
 }
+

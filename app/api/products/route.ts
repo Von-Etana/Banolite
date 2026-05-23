@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '../../../lib/supabase/server';
+import {
+    getCache, setCache, invalidateCachePattern,
+    buildProductsListKey, TTL,
+} from '../../../lib/redis';
 
 // GET /api/products — List all products (public)
 export async function GET(req: NextRequest) {
-    const supabase = createServerClient();
     const { searchParams } = new URL(req.url);
 
     const type = searchParams.get('type');
@@ -11,6 +14,17 @@ export async function GET(req: NextRequest) {
     const creatorId = searchParams.get('creatorId');
     const search = searchParams.get('search');
 
+    // ─── Cache check ───────────────────────────────────────────────
+    const cacheKey = buildProductsListKey(searchParams);
+    const cached = await getCache<any[]>(cacheKey);
+    if (cached) {
+        const res = NextResponse.json(cached);
+        res.headers.set('X-Cache', 'HIT');
+        return res;
+    }
+
+    // ─── Supabase query ────────────────────────────────────────────
+    const supabase = createServerClient();
     let query = supabase.from('products').select('*').order('created_at', { ascending: false });
 
     if (type) query = query.eq('type', type);
@@ -24,7 +38,14 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(data || []);
+    const result = data || [];
+
+    // ─── Populate cache ───────────────────────────────────────────
+    await setCache(cacheKey, result, TTL.PRODUCTS_LIST);
+
+    const res = NextResponse.json(result);
+    res.headers.set('X-Cache', 'MISS');
+    return res;
 }
 
 // POST /api/products — Create a new product (seller only)
@@ -89,6 +110,7 @@ export async function POST(req: NextRequest) {
             billing_period: body.billingPeriod || null,
             file_url: body.fileUrl || null,
             file_size: body.fileSize || null,
+            bundle_product_ids: body.bundleProductIds || null,
         })
         .select()
         .single();
@@ -97,5 +119,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // ─── Invalidate products cache ─────────────────────────────────
+    // Bust all product list variants so fresh data is served
+    await invalidateCachePattern('products:list:*');
+
     return NextResponse.json(product, { status: 201 });
 }
+

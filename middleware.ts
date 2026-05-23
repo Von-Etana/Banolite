@@ -6,6 +6,7 @@ import {
     checkRateLimit,
     rateLimitExceededResponse,
     applyRateLimitHeaders,
+    type RateLimitResult,
 } from './lib/rateLimit';
 
 export async function middleware(request: NextRequest) {
@@ -22,13 +23,16 @@ export async function middleware(request: NextRequest) {
     }
 
     // ─── Rate Limiting (API routes only) ──────────────────────────
+    // Uses in-memory store (Edge-compatible). API routes additionally
+    // enforce Redis-backed distributed limits via lib/redis.ts.
+    let rateLimitResult: RateLimitResult | null = null;
     if (pathname.startsWith('/api/')) {
         const identifier = getClientIdentifier(request);
         const config = getConfigForPath(pathname);
-        const result = checkRateLimit(identifier, config);
+        rateLimitResult = checkRateLimit(identifier, config);
 
-        if (!result.allowed) {
-            return rateLimitExceededResponse(result);
+        if (!rateLimitResult.allowed) {
+            return rateLimitExceededResponse(rateLimitResult);
         }
     }
 
@@ -97,12 +101,9 @@ export async function middleware(request: NextRequest) {
         );
     }
 
-    // Apply rate limit headers to API responses
-    if (pathname.startsWith('/api/')) {
-        const identifier = getClientIdentifier(request);
-        const config = getConfigForPath(pathname);
-        const result = checkRateLimit(identifier, config);
-        applyRateLimitHeaders(supabaseResponse, result);
+    // Apply cached rate limit headers to API responses (no second DB hit)
+    if (rateLimitResult) {
+        applyRateLimitHeaders(supabaseResponse, rateLimitResult);
     }
 
     return supabaseResponse;
