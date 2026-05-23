@@ -18,7 +18,7 @@ const topSellers = [
         price: '₦5,000',
         rating: 5.0,
         reviews: 124,
-        pdf: '/etima/My Amazing Character and I cover.pdf',
+        image: '/etima-images/1.jpeg',
     },
     {
         id: 'book-2',
@@ -27,7 +27,7 @@ const topSellers = [
         price: '₦5,000',
         rating: 4.9,
         reviews: 89,
-        pdf: '/etima/My Big Feelings And I cover.pdf',
+        image: '/etima-images/WhatsApp%20Image%202026-05-23%20at%2010.20.32%20(1).jpeg',
     },
     {
         id: 'book-3',
@@ -36,7 +36,7 @@ const topSellers = [
         price: '₦5,000',
         rating: 4.8,
         reviews: 210,
-        pdf: '/etima/My Wonderful Siblings and I cover.pdf',
+        image: '/etima-images/WhatsApp%20Image%202026-05-23%20at%2010.20.32.jpeg',
     },
     {
         id: 'book-4',
@@ -45,7 +45,7 @@ const topSellers = [
         price: '₦5,000',
         rating: 5.0,
         reviews: 156,
-        pdf: '/etima/NO IS ENOUGH COVER.pdf',
+        image: '/etima-images/WhatsApp%20Image%202026-05-23%20at%2010.20.33%20(1).jpeg',
     },
     {
         id: 'book-5',
@@ -54,7 +54,7 @@ const topSellers = [
         price: '₦5,000',
         rating: 4.9,
         reviews: 102,
-        pdf: "/etima/RED FLAGS DON'T LIE cover.pdf",
+        image: "/etima-images/WhatsApp%20Image%202026-05-23%20at%2010.20.33%20(2).jpeg",
     },
     {
         id: 'book-6',
@@ -63,7 +63,7 @@ const topSellers = [
         price: '₦5,000',
         rating: 5.0,
         reviews: 300,
-        pdf: '/etima/THE SPIRITUALLY INTELLIGENT GIRL COVER.pdf',
+        image: '/etima-images/WhatsApp%20Image%202026-05-23%20at%2010.20.33.jpeg',
     },
 ];
 
@@ -96,7 +96,7 @@ export const TopSellers: React.FC = () => {
                             className="group cursor-pointer flex flex-col"
                         >
                             <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-5 bg-[#F9F9F9] border border-[#E5E5E5]">
-                                <PdfCover file={book.pdf} alt={book.title} />
+                                <img src={book.image} alt={book.title} className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
                                     <span className="px-6 py-3 bg-white text-brand-dark rounded-full font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
                                         Quick View
