@@ -8,7 +8,7 @@ const columns = [
     links: [
       { label: 'Website', href: '#' },
       { label: 'Payments', href: '#' },
-      { label: 'Mobile App', href: '#' },
+      { label: 'Affiliate & Referrals', href: '#' },
       { label: 'Analytics', href: '#' },
       { label: 'Email Marketing', href: '#' },
     ],
