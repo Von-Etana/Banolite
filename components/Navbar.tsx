@@ -44,7 +44,7 @@ export const Navbar: React.FC = () => {
           : 'bg-white border-b border-transparent'
           }`}
       >
-        <div className="container mx-auto px-6 h-64 flex items-center justify-between">
+        <div className="container mx-auto px-6 h-32 md:h-48 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
             <img src="/ban.png" alt="Banolite Logo" className="h-28 md:h-40 w-auto object-contain" />
@@ -177,7 +177,7 @@ export const Navbar: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-x-0 top-64 z-30 bg-white border-b border-selar-border shadow-elevated p-4 md:hidden"
+            className="fixed inset-x-0 top-32 z-30 bg-white border-b border-selar-border shadow-elevated p-4 md:hidden"
           >
             <div className="flex flex-col gap-1">
               {navLinks.map((link) => (
