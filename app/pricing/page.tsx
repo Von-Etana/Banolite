@@ -113,7 +113,7 @@ const PricingPage = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-32 pb-20 bg-[#F8FAFC]">
+    <div className="min-h-screen pt-8 pb-20 bg-[#F8FAFC]">
       {/* Header */}
       <div className="container mx-auto px-6 text-center max-w-3xl mb-20">
         <motion.h1

@@ -9,7 +9,7 @@ export const Hero: React.FC = () => {
   const { toggleAuth, user, siteContent } = useStore();
 
   return (
-    <section className="relative min-h-[90vh] flex items-center pt-40 md:pt-56 pb-16 overflow-hidden bg-cream">
+    <section className="relative min-h-[90vh] flex items-center pt-8 md:pt-12 pb-16 overflow-hidden bg-cream">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 -mr-40 -mt-40 w-[600px] h-[600px] bg-brand-primary/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 -ml-40 -mb-40 w-[500px] h-[500px] bg-brand-accent5/20 rounded-full blur-[100px] pointer-events-none" />

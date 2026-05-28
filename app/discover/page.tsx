@@ -26,7 +26,7 @@ export default function DiscoverPage() {
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
     return (
-        <main className="min-h-screen pt-24 pb-20">
+        <div className="min-h-screen pt-8 pb-20">
             {/* Header */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -166,6 +166,6 @@ export default function DiscoverPage() {
             {/* Modals */}
             <BookingFlow coach={selectedCoach} onClose={() => setSelectedCoach(null)} />
             <EventTicketing event={selectedEvent} onClose={() => setSelectedEvent(null)} />
-        </main>
+        </div>
     );
 }

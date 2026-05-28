@@ -62,7 +62,7 @@ export default function RootLayout({
                     <Suspense fallback={null}>
                         <Navbar />
                     </Suspense>
-                    <main>
+                    <main className="pt-32 md:pt-48">
                         {children}
                     </main>
                     <Footer />
