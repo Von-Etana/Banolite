@@ -62,7 +62,7 @@ export const Hero: React.FC = () => {
                   Go to Dashboard
                 </Link>
               )}
-              <Link href="/products" className="btn-outline text-lg w-full sm:w-auto">
+              <Link href="/products" className="btn-outline text-lg w-full sm:w-auto text-center">
                 Explore Marketplace
               </Link>
             </motion.div>
