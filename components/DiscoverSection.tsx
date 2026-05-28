@@ -11,7 +11,7 @@ const products = [
     { id: 'communities', title: 'Communities', icon: Heart, desc: 'Connect your audience with each other.' },
     { id: 'downloads', title: 'Downloads', icon: FileText, desc: 'Sell ebooks, templates, and digital files.' },
     { id: 'newsletters', title: 'Newsletters', icon: Sparkles, desc: 'Send paid or free recurring updates.' },
-    { id: 'bundles', title: 'Bundles', icon: LayoutGrid, desc: 'Package any combo of products together.' },
+    { id: 'bundles', title: 'Bundles & Affiliates', icon: LayoutGrid, desc: 'Package product combos and drive sales with our built-in affiliate & referral system.' },
 ];
 
 export const DiscoverProducts: React.FC = () => {

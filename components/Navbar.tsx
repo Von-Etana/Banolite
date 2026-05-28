@@ -47,7 +47,7 @@ export const Navbar: React.FC = () => {
         <div className="container mx-auto px-6 h-64 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/ban.png" alt="Banolite Logo" className="h-56 w-auto object-contain" />
+            <img src="/ban.png" alt="Banolite Logo" className="h-28 md:h-40 w-auto object-contain" />
           </Link>
 
           {/* Desktop Links */}

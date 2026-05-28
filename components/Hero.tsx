@@ -54,7 +54,7 @@ export const Hero: React.FC = () => {
                   onClick={toggleAuth}
                   className="btn-primary text-lg w-full sm:w-auto group flex items-center justify-center gap-2"
                 >
-                  Start for Free
+                  Become a seller
                   <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </button>
               ) : (

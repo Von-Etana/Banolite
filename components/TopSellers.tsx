@@ -23,7 +23,7 @@ const topSellers = [
     {
         id: 'book-2',
         title: 'My Big Feelings And I',
-        author: 'Etima Umeh',
+        author: 'Ngozi Obi',
         price: '₦5,000',
         rating: 4.9,
         reviews: 89,
@@ -32,7 +32,7 @@ const topSellers = [
     {
         id: 'book-3',
         title: 'My Wonderful Siblings and I',
-        author: 'Etima Umeh',
+        author: 'Tosin Adewale',
         price: '₦5,000',
         rating: 4.8,
         reviews: 210,
@@ -41,7 +41,7 @@ const topSellers = [
     {
         id: 'book-4',
         title: 'NO IS ENOUGH',
-        author: 'Etima Umeh',
+        author: 'Fatima Bello',
         price: '₦5,000',
         rating: 5.0,
         reviews: 156,
@@ -50,7 +50,7 @@ const topSellers = [
     {
         id: 'book-5',
         title: "RED FLAGS DON'T LIE",
-        author: 'Etima Umeh',
+        author: 'Chinedu Okafor',
         price: '₦5,000',
         rating: 4.9,
         reviews: 102,
@@ -59,7 +59,7 @@ const topSellers = [
     {
         id: 'book-6',
         title: 'THE SPIRITUALLY INTELLIGENT GIRL',
-        author: 'Etima Umeh',
+        author: 'Dr. Tomiwa Alabi',
         price: '₦5,000',
         rating: 5.0,
         reviews: 300,
@@ -74,7 +74,7 @@ export const TopSellers: React.FC = () => {
                 <div className="flex flex-col md:flex-row justify-between items-end mb-12">
                     <div>
                         <h2 className="font-display font-bold text-4xl tracking-[-1px] text-brand-dark mb-4">
-                            Top Sellers by Etima Umeh
+                            Top Sellers
                         </h2>
                         <p className="text-lg text-brand-muted max-w-2xl">
                             Discover the most loved books that are changing lives. Get your copy today.
