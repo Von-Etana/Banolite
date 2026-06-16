@@ -21,19 +21,16 @@
 temp_banolite/
 tmp_patch*.cjs
 add-use-client.cjs
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+fix_currency.cjs
+Etima/
+*.tsbuildinfo
+next-env.d.ts
 
 # local env files
 .env*.local
 .env
+.env.production
 
 # vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts

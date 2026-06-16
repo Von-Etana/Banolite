@@ -21,9 +21,38 @@ const display = Outfit({
 });
 
 export const metadata: Metadata = {
-    title: "Banolite - Digital Knowledge Platform",
+    metadataBase: new URL('https://banolite.com'),
+    title: {
+        default: "Banolite - Digital Knowledge Platform",
+        template: "%s | Banolite",
+    },
     description: "Your hub for premium digital products, courses, and coaching.",
+    keywords: ["digital products", "ebooks", "online courses", "coaching", "creators", "selar alternative"],
+    authors: [{ name: "Banolite Team" }],
+    openGraph: {
+        title: "Banolite - Digital Knowledge Platform",
+        description: "Your hub for premium digital products, courses, and coaching.",
+        url: "https://banolite.com",
+        siteName: "Banolite",
+        images: [
+            {
+                url: "/ban.png",
+                width: 1200,
+                height: 630,
+                alt: "Banolite - Digital Knowledge Platform",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Banolite - Digital Knowledge Platform",
+        description: "Your hub for premium digital products, courses, and coaching.",
+        images: ["/ban.png"],
+    },
 };
+
 
 export default function RootLayout({
     children,
@@ -32,6 +61,10 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" className={`${sans.variable} ${display.variable}`}>
+            <head>
+                <link rel="dns-prefetch" href="https://bkyowvturhfsvxxeyurr.supabase.co" />
+                <link rel="preconnect" href="https://bkyowvturhfsvxxeyurr.supabase.co" />
+            </head>
             <body className="font-sans min-h-screen bg-cream text-brand-dark selection:bg-brand-purple selection:text-white">
                 <Providers>
                     <Toaster

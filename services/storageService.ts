@@ -76,10 +76,15 @@ export function generateId(): string {
 }
 
 /**
- * Simple hash function for password storage (for demo purposes only)
- * In production, use proper server-side hashing with bcrypt
+ * @deprecated
+ * WARNING: Simple hash function for password storage (for demo purposes only).
+ * DO NOT use this in production. For proper production authentication, use Supabase Auth
+ * which uses secure cryptographic salting and hashing (bcrypt/scrypt) server-side.
  */
 export function simpleHash(str: string): string {
+    if (process.env.NODE_ENV === 'production') {
+        console.warn('CRITICAL: simpleHash is deprecated and insecure for production use. Use Supabase Auth instead.');
+    }
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
         const char = str.charCodeAt(i);

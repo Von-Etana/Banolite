@@ -1,14 +1,18 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { PRODUCTS } from '../constants';
 
-// Initialize only if API key is available
-const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.API_KEY;
+// Disable AI Assistant entirely in production per user preference
+const isProd = process.env.NODE_ENV === 'production';
+const apiKey = !isProd ? (process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.API_KEY) : null;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 export const isAIAvailable = () => !!ai;
 
 export const generateBookResponse = async (userQuery: string): Promise<string> => {
+  if (isProd) {
+    return "The AI Chatbot is disabled in the production environment.";
+  }
+
   if (!ai) {
     return "AI Assistant is currently unavailable. Please configure your API key to enable this feature.";
   }
@@ -18,12 +22,12 @@ export const generateBookResponse = async (userQuery: string): Promise<string> =
   ).join('\n');
 
   const systemInstruction = `
-    You are "Redex Assistant", an expert commerce guide for the Redex Digital Marketplace (like Selar).
+    You are "Banolite Assistant", an expert commerce guide for the Banolite Digital Marketplace (like Selar).
     We sell eBooks, Courses, Tickets, and Services.
     
     Inventory:
     ${inventoryContext}
-
+ 
     Rules:
     1. Help users find digital products or services.
     2. Recommend based on their specific needs (learning, business, dev, etc).
@@ -46,3 +50,4 @@ export const generateBookResponse = async (userQuery: string): Promise<string> =
     return "Something went wrong in the marketplace lab. Try again in a second!";
   }
 };
+

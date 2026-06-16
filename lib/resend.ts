@@ -3,6 +3,8 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL!;
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://banolite.com';
+
 
 export interface OrderEmailData {
     buyerName: string;
@@ -85,7 +87,7 @@ export async function sendOrderReceipt(data: OrderEmailData) {
                         </div>
 
                         <div style="margin-top: 48px; text-align: center;">
-                            <a href="https://banolite.vercel.app/library" style="background: #000; color: white; padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; display: inline-block;">Access Your Library</a>
+                            <a href="${APP_URL}/library" style="background: #000; color: white; padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; display: inline-block;">Access Your Library</a>
                             <p style="font-size: 12px; color: #888; margin-top: 20px;">Reference: ${data.orderId}</p>
                         </div>
                     </div>
@@ -126,7 +128,7 @@ export async function sendSellerSaleNotification(data: SaleEmailData) {
                         </div>
 
                         <div style="text-align: center; margin-top: 40px;">
-                            <a href="https://banolite.vercel.app/dashboard/seller" style="background: #000; color: white; padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; display: inline-block;">View Seller Dashboard</a>
+                            <a href="${APP_URL}/dashboard/seller" style="background: #000; color: white; padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; display: inline-block;">View Seller Dashboard</a>
                         </div>
                     </div>
                     <div style="padding: 32px; text-align: center; color: #888; font-size: 12px;">
